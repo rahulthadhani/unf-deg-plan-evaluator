@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Degree Plan - UNF</title>
+  <link rel="stylesheet" href="styles/shared.css">
+  <style>
+    body { display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+    .panes { display:flex; flex:1; overflow:hidden; }
+
+    /* â”€â”€ Pane 1: Plan sidebar â”€â”€ */
+    .plan-sidebar {
+      width:248px; flex-shrink:0; background:var(--white);
+      border-right:1px solid var(--border); display:flex;
+      flex-direction:column; overflow-y:auto;
+    }
+    .sidebar-hdr {
+      background:var(--navy); color:var(--white); font-size:11px;
+      font-weight:700; text-transform:uppercase; letter-spacing:0.08em;
+      padding:10px 14px; border-bottom:2px solid var(--gold); flex-shrink:0;
+    }
+    .plan-nav-btn {
+      display:flex; align-items:flex-start; gap:9px; width:100%;
+      background:transparent; border:none; border-bottom:1px solid var(--border);
+      border-left:4px solid transparent; padding:13px 12px 13px 10px;
+      text-align:left; font-size:13px; font-family:var(--font); font-weight:600;
+      color:var(--navy); cursor:pointer; line-height:1.4;
+      transition:background 0.12s, border-left-color 0.12s;
+    }
+    .plan-nav-btn .btn-icon { font-size:15px; flex-shrink:0; margin-top:1px; opacity:0.75; }
+    .plan-nav-btn:hover { background:var(--teal-light); border-left-color:var(--teal); }
+    .plan-nav-btn.active { background:#eef3fb; border-left-color:var(--navy); font-weight:700; }
+    .plan-nav-btn.unavail { color:var(--text-muted); font-weight:400; }
+    .plan-nav-btn.unavail:hover { background:var(--bg); border-left-color:var(--border-dark); }
+
+    /* â”€â”€ Pane 2: Tree â”€â”€ */
+    .plan-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+    .legend-strip {
+      display:flex; gap:18px; flex-wrap:wrap; padding:8px 20px;
+      background:var(--white); border-bottom:1px solid var(--border);
+      font-size:12px; color:var(--text-muted); flex-shrink:0; align-items:center;
+    }
+    .legend-strip strong { color:var(--navy); font-size:11px; text-transform:uppercase; letter-spacing:0.08em; margin-right:4px; }
+    .li { display:flex; align-items:center; gap:5px; }
+    .ls { width:12px; height:12px; border:2px solid; flex-shrink:0; }
+    .ls.comp  { border-color:var(--green);      background:var(--green-light); }
+    .ls.avail { border-color:var(--teal);        background:var(--teal-light); }
+    .ls.inp   { border-color:var(--gold);        background:var(--gold-light); border-style:dashed; }
+    .ls.lock  { border-color:var(--border-dark); background:#f0f0f0; }
+    .ls.nos   { border-color:var(--red);         background:#fdeaea; }
+    #tree-wrapper {
+      flex:1;
+      position:relative;
+      overflow:hidden;
+      cursor:grab;
+      background-color:var(--navy-light);
+      background-image:
+        linear-gradient(rgba(245,168,0,0.18) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(245,168,0,0.18) 1px, transparent 1px);
+      background-size:32px 32px;
+      background-position:0 0;
+      user-select:none;
+    }
+    #tree-wrapper.is-panning { cursor:grabbing; }
+    #tree-container { position:absolute; top:0; left:0; margin:0; transform-origin:0 0; will-change:transform; }
+
+    /* â”€â”€ Pane 3: Stats â”€â”€ */
+    .stats-sidebar {
+      width:212px; flex-shrink:0; background:var(--white);
+      border-left:1px solid var(--border); display:flex;
+      flex-direction:column; overflow-y:auto;
+    }
+    .stats-section-title {
+      font-size:11px; font-weight:700; text-transform:uppercase;
+      letter-spacing:0.08em; color:var(--navy);
+      padding:10px 14px 6px; border-bottom:1px solid var(--border);
+      background:var(--bg-light);
+    }
+    .stat-row {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:9px 14px; border-bottom:1px solid #f2f2f2; font-size:12px;
+    }
+    .stat-row .lbl { color:var(--text-muted); }
+    .stat-row .val { font-weight:700; color:var(--navy); }
+    .stat-row .val.green { color:var(--green); }
+    .stat-row .val.gold  { color:var(--gold-dark); }
+    .stat-row .val.teal  { color:var(--teal-mid); }
+    .stat-row .val.grey  { color:var(--border-dark); }
+    .stat-row .val.small { font-size:11px; }
+
+    /* â”€â”€ Electives divider â”€â”€ */
+    .elec-divider {
+      position:absolute;
+      left: 0; right: 0;
+      display:flex; align-items:center; gap:14px;
+    }
+    .elec-divider-line {
+      flex:1; height:2px;
+      background: repeating-linear-gradient(
+        to right, var(--border-dark) 0, var(--border-dark) 8px,
+        transparent 8px, transparent 14px
+      );
+    }
+    .elec-divider-label {
+      background:var(--navy); color:var(--white);
+      font-size:11px; font-weight:700; text-transform:uppercase;
+      letter-spacing:0.1em; padding:4px 14px;
+      border-left:3px solid var(--gold);
+      white-space:nowrap; flex-shrink:0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="site-header">
+    <img src="assets/UNF-logo-white.png" alt="University of North Florida" class="unf-logo">
+    <nav class="header-nav">
+      <button onclick="location.href='landing-page.html'">Home</button>
+      <button onclick="location.href='calendar.html'">Class Schedule</button>
+      <button class="active" onclick="location.href='degree-planner.html'">Degree Plan</button>
+      <button onclick="location.href='catalog.html'">Course Catalog</button>
+    </nav>
+  </div>
+
+  <div class="page-title-bar">
+    <h1>Degree Plan &mdash; BS Computer Science</h1>
+    <div class="subtitle" id="sem-sub">Loading semester...</div>
+  </div>
+  <div class="section-divider"></div>
+
+  <div class="panes">
+
+    <!-- PANE 1 -->
+    <div class="plan-sidebar">
+      <div class="sidebar-hdr">Degree Requirements</div>
+      <button class="plan-nav-btn active"   onclick="location.href='degree-planner.html'"><span class="btn-icon">&#x1F393;</span><span>Degree Plan &mdash; BS Computer Science</span></button>
+      <button class="plan-nav-btn unavail" onclick="location.href='unavailable.html'"><span class="btn-icon">&#x1F4CB;</span><span>General Education Requirements</span></button>
+      <button class="plan-nav-btn unavail" onclick="location.href='unavailable.html'"><span class="btn-icon">&#x270D;&#xFE0F;</span><span>Florida Gordon Rule</span></button>
+      <button class="plan-nav-btn unavail" onclick="location.href='unavailable.html'"><span class="btn-icon">&#x1F3DB;&#xFE0F;</span><span>State of Florida Civic Literacy Requirement</span></button>
+      <button class="plan-nav-btn unavail" onclick="location.href='unavailable.html'"><span class="btn-icon">&#x1F310;</span><span>State of Florida Foreign Language Requirement</span></button>
+    </div>
+
+    <!-- PANE 2 -->
+    <div class="plan-main">
+      <div class="legend-strip">
+        <strong>Legend:</strong>
+        <div class="li"><div class="ls comp"></div>Completed (✓)</div>
+        <div class="li"><div class="ls avail"></div>Available (+)</div>
+        <div class="li"><div class="ls inp"></div>In Progress (...)</div>
+        <div class="li"><div class="ls lock"></div>Locked (🔒)</div>
+        <div class="li"><div class="ls nos"></div>No Compatible Slots (!)</div>
+      </div>
+      <div id="tree-wrapper">
+        <div id="tree-container">
+
+          <!-- SVG edges -->
+          <svg id="svg-lines" style="position:absolute;top:0;left:0;pointer-events:none;overflow:visible;"></svg>
+
+          <!-- â”€â”€ ROW 0: Entry points (MAC 1147, COP 2220) â”€â”€ -->
+          <div class="node" id="n-mac1147"><button class="node-btn available" onclick="location.href='unavailable.html'"><strong>MAC 1147</strong><span>Pre-Calculus</span></button></div>
+          <div class="node" id="n-cop2220"><button class="node-btn completed"  onclick="location.href='unavailable.html'"><strong>COP 2220</strong><span>Programming I</span></button></div>
+
+          <!-- â”€â”€ ROW 1 â”€â”€ -->
+          <div class="node" id="n-mac2311"><button class="node-btn locked"><strong>MAC 2311</strong><span>Calculus I</span></button></div>
+          <div class="node" id="n-cot3100"><button class="node-btn locked"><strong>COT 3100</strong><span>Comp Structures</span></button></div>
+          <div class="node" id="n-cis3253"><button class="node-btn available" onclick="location.href='unavailable.html'"><strong>CIS 3253</strong><span>Legal &amp; Ethical</span></button></div>
+          <div class="node" id="n-cop3503"><button class="node-btn available" onclick="location.href='courses/cop3503.html'"><strong>COP 3503</strong><span>Programming II</span></button></div>
+          <div class="node" id="n-cda3100"><button class="node-btn available" onclick="location.href='unavailable.html'"><strong>CDA 3100</strong><span>Comp Org &amp; Arch</span></button></div>
+
+          <!-- â”€â”€ ROW 2 â”€â”€ -->
+          <div class="node" id="n-mac2312"><button class="node-btn locked"><strong>MAC 2312</strong><span>Calculus II</span></button></div>
+          <div class="node" id="n-cot3210"><button class="node-btn locked"><strong>COT 3210</strong><span>Theory of Comp.</span></button></div>
+          <div class="node" id="n-cop3530"><button class="node-btn locked"><strong>COP 3530</strong><span>Data Structures</span></button></div>
+          <div class="node" id="n-cnt4504"><button class="node-btn locked"><strong>CNT 4504</strong><span>Networks</span></button></div>
+          <div class="node" id="n-cop3703"><button class="node-btn locked"><strong>COP 3703</strong><span>Databases</span></button></div>
+          <div class="node" id="n-cop3404"><button class="node-btn locked"><strong>COP 3404</strong><span>Systems Prog.</span></button></div>
+
+          <!-- â”€â”€ ROW 3 â”€â”€ -->
+          <div class="node" id="n-phy2048"><button class="node-btn locked"><strong>PHY 2048C</strong><span>Physics I</span></button></div>
+          <div class="node" id="n-mas3105"><button class="node-btn locked"><strong>MAS 3105</strong><span>Linear Algebra</span></button></div>
+          <div class="node" id="n-sta3032"><button class="node-btn locked"><strong>STA 3032</strong><span>Prob &amp; Stats</span></button></div>
+          <div class="node" id="n-cop4620"><button class="node-btn locked"><strong>COP 4620</strong><span>Lang Translators</span></button></div>
+          <div class="node" id="n-cen4010"><button class="node-btn locked"><strong>CEN 4010</strong><span>Software Eng.</span></button></div>
+          <div class="node" id="n-cot4400"><button class="node-btn locked"><strong>COT 4400</strong><span>Algorithms</span></button></div>
+          <div class="node" id="n-cap4630"><button class="node-btn locked"><strong>CAP 4630</strong><span>Artificial Intel.</span></button></div>
+          <div class="node" id="n-cop4610"><button class="node-btn locked"><strong>COP 4610</strong><span>Operating Systems</span></button></div>
+
+          <!-- â”€â”€ ROW 4 â”€â”€ -->
+          <div class="node" id="n-phy2049"><button class="node-btn locked"><strong>PHY 2049/L</strong><span>Physics II</span></button></div>
+
+          <!-- â”€â”€ ELECTIVES DIVIDER â”€â”€ -->
+          <div class="elec-divider" id="elec-divider">
+            <div class="elec-divider-line"></div>
+            <div class="elec-divider-label">Electives &amp; Breadth Requirements</div>
+            <div class="elec-divider-line"></div>
+          </div>
+
+          <!-- â”€â”€ ELECTIVES ROW â”€â”€ -->
+          <div class="node" id="n-spc">     <button class="node-btn available" onclick="location.href='catalog.html?filter=speech'">      <strong>SPC</strong><span>Speech Elective</span></button></div>
+          <div class="node" id="n-sci1">    <button class="node-btn available" onclick="location.href='catalog.html?filter=science'"><strong>Science I</strong><span>Science Elective</span></button></div>
+          <div class="node" id="n-sci2">    <button class="node-btn available" onclick="location.href='catalog.html?filter=science'"><strong>Science II</strong><span>Science Elective</span></button></div>
+          <div class="node" id="n-elective1"><button class="node-btn available" onclick="location.href='catalog.html?filter=elective'"><strong>CS Elective</strong><span>3XXX/4XXX (1 of 3)</span></button></div>
+          <div class="node" id="n-elective2"><button class="node-btn available" onclick="location.href='catalog.html?filter=elective'"><strong>CS Elective</strong><span>3XXX/4XXX (2 of 3)</span></button></div>
+          <div class="node" id="n-elective3"><button class="node-btn available" onclick="location.href='catalog.html?filter=elective'"><strong>CS Elective</strong><span>3XXX/4XXX (3 of 3)</span></button></div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- PANE 3 -->
+    <div class="stats-sidebar">
+      <div class="sidebar-hdr" style="border-bottom:2px solid var(--gold);">Progress</div>
+      <div class="stats-section-title">Credit Hours</div>
+      <div class="stat-row"><span class="lbl">Completed</span> <span class="val green" id="s-comp-cr">--</span></div>
+      <div class="stat-row"><span class="lbl">In Progress</span><span class="val gold"  id="s-ip-cr">--</span></div>
+      <div class="stat-row"><span class="lbl">Remaining</span> <span class="val grey"  id="s-rem-cr">--</span></div>
+      <div class="stat-row"><span class="lbl">Total Req.</span><span class="val">120</span></div>
+      <div class="stats-section-title">Courses</div>
+      <div class="stat-row"><span class="lbl">Completed</span> <span class="val green" id="s-comp-c">--</span></div>
+      <div class="stat-row"><span class="lbl">Available</span> <span class="val teal"  id="s-avail-c">--</span></div>
+      <div class="stat-row"><span class="lbl">Locked</span>   <span class="val grey"  id="s-lock-c">--</span></div>
+      <div class="stats-section-title">This Semester</div>
+      <div class="stat-row"><span class="lbl">Term</span>     <span class="val small" id="s-sem">--</span></div>
+      <div class="stat-row"><span class="lbl">Enrolled</span><span class="val gold"  id="s-enr">--</span></div>
+    </div>
+
+  </div>
+  <div class="site-footer">(c) University of North Florida - 1 UNF Drive, Jacksonville, FL 32224 - (904) 620-1000</div>
+
+<script>
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Layout constants
+   COL = horizontal spacing between node centers
+   ROW = vertical spacing between rows
+   NW / NH = node width / height
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+const COL = 126, ROW = 150, NW = 115, NH = 65;
+const TOP_OFFSET = 30;
+const API = 'http://localhost:8000';
+const NO_SLOTS_MSG = 'No compatible sections available with your current blocked days/times this semester.';
+function courseHref(code){return 'courses/course-'+String(code).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'.html';}
+function tQ(t){const m=String(t||'').match(/(\d+):(\d+)\s*(AM|PM)/i);if(!m)return null;let h=+m[1],min=+m[2],p=m[3].toUpperCase();if(p==='PM'&&h!==12)h+=12;if(p==='AM'&&h===12)h=0;return(h-6)*4+Math.floor(min/15);}
+function tQE(t){const m=String(t||'').match(/(\d+):(\d+)\s*(AM|PM)/i);if(!m)return null;let h=+m[1],min=+m[2]-1,p=m[3].toUpperCase();if(p==='PM'&&h!==12)h+=12;if(p==='AM'&&h===12)h=0;if(min<0){min=59;h--;}return(h-6)*4+Math.floor(min/15);}
+function sectionCompatible(s,gc,gr){const ds=s.days||[];if(!ds.length||!s.startTime)return true;const sq=tQ(s.startTime),eq=tQE(s.endTime);if(sq===null||eq===null)return true;if(ds.some(d=>gc.has(d)))return false;for(let h=Math.floor(sq/4);h<=Math.floor(eq/4);h++){if(gr.has(h))return false;}return true;}
+
+// Prereq edges: [from, to]
+const edges = [
+  ['n-mac1147','n-mac2311'],
+  ['n-mac1147','n-cot3100'],
+  ['n-mac2311','n-mac2312'],
+  ['n-mac2311','n-phy2048'],
+  ['n-mac2312','n-mas3105'],
+  ['n-mac2312','n-sta3032'],
+  ['n-phy2048','n-phy2049'],
+  ['n-mac2312','n-phy2049'],
+  ['n-cop2220','n-cis3253'],
+  ['n-cop2220','n-cop3503'],
+  ['n-cop2220','n-cda3100'],
+  ['n-cot3100','n-cot3210'],
+  ['n-cot3100','n-cop3530'],
+  ['n-cop3503','n-cop3530'],
+  ['n-cop3503','n-cnt4504'],
+  ['n-cop3503','n-cop3703'],
+  ['n-cop3503','n-cop3404'],
+  ['n-cda3100','n-cop3404'],
+  ['n-cot3210','n-cop4620'],
+  ['n-cop3530','n-cop4620'],
+  ['n-cop3530','n-cen4010'],
+  ['n-cop3530','n-cot4400'],
+  ['n-cop3530','n-cap4630'],
+  ['n-cop3530','n-cop4610'],
+  ['n-cop3703','n-cen4010'],
+  ['n-cop3404','n-cop4610'],
+];
+const positions = {
+  'n-mac1147': [0, 0], 'n-cop2220': [4, 0],
+  'n-mac2311': [0, 1], 'n-cot3100': [2, 1], 'n-cis3253': [3, 1], 'n-cop3503': [4, 1], 'n-cda3100': [5, 1],
+  'n-mac2312': [0, 2], 'n-phy2048': [1, 2], 'n-cot3210': [2, 2], 'n-cop3530': [3, 2], 'n-cnt4504': [4, 2], 'n-cop3703': [5, 2], 'n-cop3404': [6, 2],
+  'n-mas3105': [1, 3], 'n-sta3032': [2, 3], 'n-cop4620': [3, 3], 'n-cen4010': [4, 3], 'n-cot4400': [5, 3], 'n-cap4630': [6, 3], 'n-cop4610': [7, 3],
+  'n-phy2049': [0, 3],
+};
+const COLS = 8, ROWS = 4;
+const CW = (COLS - 1) * COL + NW;
+function rowStartX(n) {
+  const span = (n - 1) * COL;
+  return (CW - span) / 2;
+}
+
+const pos = {};
+for (const [id, [col, row]] of Object.entries(positions)) {
+  pos[id] = { x: col * COL + NW / 2, y: row * ROW + NH / 2 + TOP_OFFSET };
+}
+// Center core flowchart content horizontally within the middle pane canvas.
+const coreIds = Object.keys(positions);
+const coreMinX = Math.min(...coreIds.map(id => pos[id].x - NW / 2));
+const coreMaxX = Math.max(...coreIds.map(id => pos[id].x + NW / 2));
+const coreCenterX = (coreMinX + coreMaxX) / 2;
+const canvasCenterX = CW / 2;
+const coreShiftX = canvasCenterX - coreCenterX;
+coreIds.forEach(id => { pos[id].x += coreShiftX; });
+
+const elecNodes = ['n-spc','n-sci1','n-sci2','n-elective1','n-elective2','n-elective3'];
+const coreBottom = (ROWS - 1) * ROW + NH + TOP_OFFSET;
+const dividerY = coreBottom + 80;
+const elecY = dividerY + 56;
+elecNodes.forEach((id, i) => {
+  pos[id] = { x: rowStartX(elecNodes.length) + i * COL, y: elecY };
+});
+const totalH = elecY + NH / 2 + 30;
+const wrapperEl = document.getElementById('tree-wrapper');
+const paneInnerW = Math.max(CW, Math.floor(wrapperEl.clientWidth - 72));
+const extraPadX = (paneInnerW - CW) / 2;
+Object.values(pos).forEach(p => { p.x += extraPadX; });
+
+// Apply positions to DOM nodes
+for (const [id, {x, y}] of Object.entries(pos)) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.style.left = x + 'px';
+    el.style.top  = y + 'px';
+  }
+}
+
+const ct = document.getElementById('tree-container');
+ct.style.width  = paneInnerW + 'px';
+ct.style.height = totalH + 'px';
+
+// Electives row under the flowchart with header divider.
+const divEl = document.getElementById('elec-divider');
+divEl.style.display = 'flex';
+divEl.style.top = (dividerY - 11) + 'px';
+divEl.style.left = '0';
+divEl.style.width = paneInnerW + 'px';
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   SVG edge drawing
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+const svg = document.getElementById('svg-lines');
+svg.setAttribute('width',  paneInnerW);
+svg.setAttribute('height', totalH);
+
+const viewState = {
+  scale: 1,
+  minScale: 0.55,
+  maxScale: 1.7,
+  tx: 0,
+  ty: 0,
+};
+const panState = {
+  active: false,
+  startX: 0,
+  startY: 0,
+  startTx: 0,
+  startTy: 0,
+};
+
+function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+function applyViewportTransform(){
+  ct.style.transform = `translate(${viewState.tx}px, ${viewState.ty}px) scale(${viewState.scale})`;
+  wrapperEl.style.backgroundPosition = `${viewState.tx}px ${viewState.ty}px`;
+}
+function centerViewport(initialScale = 1){
+  const wrapW = wrapperEl.clientWidth;
+  const wrapH = wrapperEl.clientHeight;
+  viewState.scale = clamp(initialScale, viewState.minScale, viewState.maxScale);
+  viewState.tx = (wrapW - paneInnerW * viewState.scale) / 2;
+  viewState.ty = Math.max(18, (wrapH - totalH * viewState.scale) / 2);
+  applyViewportTransform();
+}
+function zoomAt(clientX, clientY, nextScale){
+  const rect = wrapperEl.getBoundingClientRect();
+  const px = clientX - rect.left;
+  const py = clientY - rect.top;
+  const scale = clamp(nextScale, viewState.minScale, viewState.maxScale);
+  if (scale === viewState.scale) return;
+  const worldX = (px - viewState.tx) / viewState.scale;
+  const worldY = (py - viewState.ty) / viewState.scale;
+  viewState.scale = scale;
+  viewState.tx = px - worldX * viewState.scale;
+  viewState.ty = py - worldY * viewState.scale;
+  applyViewportTransform();
+}
+
+centerViewport(0.82);
+
+wrapperEl.addEventListener('wheel', (ev) => {
+  ev.preventDefault();
+  const zoomFactor = ev.deltaY < 0 ? 1.08 : 0.92;
+  zoomAt(ev.clientX, ev.clientY, viewState.scale * zoomFactor);
+}, { passive: false });
+
+wrapperEl.addEventListener('mousedown', (ev) => {
+  if (ev.button !== 0) return;
+  if (ev.target.closest('.node-btn')) return;
+  panState.active = true;
+  panState.startX = ev.clientX;
+  panState.startY = ev.clientY;
+  panState.startTx = viewState.tx;
+  panState.startTy = viewState.ty;
+  wrapperEl.classList.add('is-panning');
+  ev.preventDefault();
+});
+
+window.addEventListener('mousemove', (ev) => {
+  if (!panState.active) return;
+  viewState.tx = panState.startTx + (ev.clientX - panState.startX);
+  viewState.ty = panState.startTy + (ev.clientY - panState.startY);
+  applyViewportTransform();
+});
+
+window.addEventListener('mouseup', () => {
+  if (!panState.active) return;
+  panState.active = false;
+  wrapperEl.classList.remove('is-panning');
+});
+
+window.addEventListener('resize', () => {
+  centerViewport(viewState.scale);
+});
+
+// IMPORTANT: .node CSS has transform:translate(-50%,-50%), so el.style.left/top
+// is the CENTER of the node â€” pos.x and pos.y are already center coordinates.
+function bx(id) { return pos[id].x; }            // center x (same for top/bottom)
+function by(id) { return pos[id].y + NH / 2; }   // center y + half height = bottom edge
+function tx(id) { return pos[id].x; }            // center x
+function ty(id) { return pos[id].y - NH / 2; }   // center y - half height = top edge
+
+// Which source nodes are completed (for green edges)
+const si = parseInt(localStorage.getItem('cal_semIdx') || '0');
+const comp = new Set(['COP 2220']);
+for (let i = 0; i < si; i++)
+  JSON.parse(localStorage.getItem('cal_'+i+'_courses') || '[]').forEach(c => comp.add(c.code));
+
+let svgH = '';
+for (const [f, t] of edges) {
+  const x1 = bx(f), y1 = by(f);
+  const x2 = tx(t), y2 = ty(t);
+  const fromCode = (document.querySelector(`#${f} strong`)?.textContent || '').trim();
+  const done = comp.has(fromCode);
+  const color  = done ? '#2e6b30' : '#8d97a3';
+  const weight = done ? 2 : 1.8;
+  const op     = 0.82;
+  const midY   = y1 + (y2 - y1) * 0.5;
+  const d = `M${x1},${y1} C${x1},${midY} ${x2},${midY} ${x2},${y2}`;
+
+  svgH += `<path d="${d}" fill="none" stroke="${color}" stroke-width="${weight}" opacity="${op}" stroke-linecap="round"/>`;
+}
+svg.innerHTML = svgH;
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Node status coloring
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+const enrolledNow = JSON.parse(localStorage.getItem('cal_'+si+'_courses') || '[]');
+const ip = new Set(enrolledNow.map(c => c.code));
+
+const prereqs = {
+  'MAC 2311':['MAC 1147'],'MAC 2312':['MAC 2311'],'MAS 3105':['MAC 2312'],
+  'STA 3032':['MAC 2312'],'PHY 2048C':['MAC 2311'],'PHY 2049':['PHY 2048C','MAC 2312'],
+  'COT 3100':['MAC 1147'],'CIS 3253':['COP 2220'],'COP 3503':['COP 2220'],
+  'CDA 3100':['COP 2220'],'COT 3210':['COT 3100'],'COP 3530':['COT 3100','COP 3503'],
+  'CNT 4504':['COP 3503'],'COP 3703':['COP 3503'],'COP 3404':['CDA 3100','COP 3503'],
+  'COP 4620':['COT 3210','COP 3530'],'CEN 4010':['COP 3530','COP 3703'],
+  'COT 4400':['COP 3530'],'CAP 4630':['COP 3530'],'COP 4610':['COP 3530','COP 3404'],
+};
+const hardComp   = new Set(['COP 2220']);
+const standalone = new Set(['n-spc','n-sci1','n-sci2','n-elective1','n-elective2','n-elective3']);
+
+const allNodes = {
+  'n-mac1147':'MAC 1147','n-mac2311':'MAC 2311','n-mac2312':'MAC 2312',
+  'n-mas3105':'MAS 3105','n-sta3032':'STA 3032','n-phy2048':'PHY 2048C','n-phy2049':'PHY 2049',
+  'n-cop2220':'COP 2220','n-cot3100':'COT 3100','n-cis3253':'CIS 3253',
+  'n-cop3503':'COP 3503','n-cda3100':'CDA 3100','n-cot3210':'COT 3210',
+  'n-cop3530':'COP 3530','n-cnt4504':'CNT 4504','n-cop3703':'COP 3703',
+  'n-cop3404':'COP 3404','n-cop4620':'COP 4620','n-cen4010':'CEN 4010',
+  'n-cot4400':'COT 4400','n-cap4630':'CAP 4630','n-cop4610':'COP 4610',
+};
+for (const [nid, code] of Object.entries(allNodes)) {
+  const el = document.getElementById(nid);
+  const btn = el ? el.querySelector('.node-btn') : null;
+  if (btn) btn.onclick = () => location.href = courseHref(code);
+}
+const crMap = {
+  'MAC 1147':3,'MAC 2311':4,'MAC 2312':4,'MAS 3105':3,'STA 3032':3,
+  'PHY 2048C':4,'PHY 2049':4,'COT 3100':3,'CIS 3253':3,'COP 2220':3,
+  'COP 3503':3,'CDA 3100':3,'COT 3210':3,'COP 3530':3,'CNT 4504':3,
+  'COP 3703':3,'COP 3404':3,'COP 4620':3,'CEN 4010':3,'COT 4400':3,
+  'CAP 4630':3,'COP 4610':3,'SPC':3,'Science I':3,'Science II':3,
+  'CS Elective 1':3,'CS Elective 2':3,'CS Elective 3':3,
+};
+
+let compCr=0, ipCr=0, remCr=0, compC=0, availC=0, lockC=0;
+// Include hard-completed courses (e.g., COP 2220) in progress totals.
+hardComp.forEach(code => {
+  if (crMap[code]) compCr += crMap[code];
+  compC++;
+});
+
+for (const [nid, code] of Object.entries(allNodes)) {
+  const el = document.getElementById(nid); if (!el) continue;
+  const btn = el.querySelector('.node-btn');
+  if (!btn || hardComp.has(code)) continue;
+  const pr = prereqs[code] || [], cr = crMap[code] || 3;
+  btn.classList.remove('available','locked','completed','in-progress');
+  if (comp.has(code)) {
+    btn.classList.add('completed'); btn.style.pointerEvents='';
+    compCr+=cr; compC++;
+  } else if (ip.has(code)) {
+    btn.classList.add('in-progress'); ipCr+=cr;
+  } else if (pr.every(p => comp.has(p))) {
+    btn.classList.add('available'); btn.style.pointerEvents='';
+    remCr+=cr; availC++;
+  } else {
+    btn.classList.add('locked'); btn.style.pointerEvents='none';
+    remCr+=cr; lockC++;
+  }
+}
+// Standalone electives always available
+standalone.forEach(() => { availC++; remCr+=3; });
+const breadthSlots = {
+  speech: ['n-spc'],
+  science: ['n-sci1','n-sci2'],
+  elective: ['n-elective1','n-elective2','n-elective3'],
+};
+const breadthFilters = {
+  speech: 'speech',
+  science: 'science',
+  elective: 'elective',
+};
+function setBreadthNodeStatus(nid, status, courseCode, filterKey){
+  const btn = document.getElementById(nid)?.querySelector('.node-btn');
+  if(!btn) return;
+  btn.classList.remove('available','locked','completed','in-progress','no-slots');
+  btn.classList.add(status);
+  btn.style.pointerEvents = '';
+  if(status === 'completed' && courseCode){
+    btn.onclick = () => location.href = courseHref(courseCode);
+    btn.title = 'Completed with ' + courseCode;
+  } else if(status === 'in-progress' && courseCode){
+    btn.onclick = () => location.href = courseHref(courseCode);
+    btn.title = 'Fulfilling requirement with ' + courseCode;
+  } else {
+    btn.onclick = () => location.href = 'catalog.html?filter=' + filterKey;
+    btn.title = '';
+  }
+}
+function applyBreadthStatus(speechComp, scienceComp, elecComp, speechIp, scienceIp, elecIp){
+  breadthSlots.speech.forEach((nid, idx)=>{
+    const compCode = speechComp[idx] || '';
+    const ipCode   = speechIp[idx]   || '';
+    const status   = compCode ? 'completed' : ipCode ? 'in-progress' : 'available';
+    setBreadthNodeStatus(nid, status, compCode || ipCode, breadthFilters.speech);
+  });
+  breadthSlots.science.forEach((nid, idx)=>{
+    const compCode = scienceComp[idx] || '';
+    const ipCode   = scienceIp[idx]   || '';
+    const status   = compCode ? 'completed' : ipCode ? 'in-progress' : 'available';
+    setBreadthNodeStatus(nid, status, compCode || ipCode, breadthFilters.science);
+  });
+  breadthSlots.elective.forEach((nid, idx)=>{
+    const compCode = elecComp[idx] || '';
+    const ipCode   = elecIp[idx]   || '';
+    const status   = compCode ? 'completed' : ipCode ? 'in-progress' : 'available';
+    setBreadthNodeStatus(nid, status, compCode || ipCode, breadthFilters.elective);
+  });
+}
+// Default state until requirement-matching courses are resolved.
+applyBreadthStatus([],[],[],[],[],[]);
+
+/* â”€â”€ Semester label & stats â”€â”€ */
+const SEMS=[];
+for(let y=2024;y<=2030;y++){SEMS.push({name:'Spring',year:y});SEMS.push({name:'Summer',year:y});SEMS.push({name:'Fall',year:y});}
+const sem = SEMS[si]||SEMS[0];
+document.getElementById('sem-sub').textContent   = 'Current Semester: '+sem.name+' '+sem.year;
+document.getElementById('s-sem').textContent     = sem.name+' '+sem.year;
+document.getElementById('s-comp-cr').textContent = compCr+' cr.';
+document.getElementById('s-ip-cr').textContent   = ipCr > 0 ? ipCr+' cr.' : '--';
+const totalReq = 120;
+const remDisplay = Math.max(totalReq - compCr - ipCr, 0);
+document.getElementById('s-rem-cr').textContent  = remDisplay+' cr.';
+document.getElementById('s-comp-c').textContent  = compC;
+document.getElementById('s-avail-c').textContent = availC;
+document.getElementById('s-lock-c').textContent  = lockC;
+document.getElementById('s-enr').textContent     = ip.size>0 ? ip.size+' course'+(ip.size>1?'s':'') : '--';
+
+// Mark breadth placeholders as completed (green) or in-progress (yellow) based on
+// courses taken in past semesters or enrolled in the current semester.
+(async function markBreadthRequirementProgress(){
+  try{
+    const r = await fetch(API + '/api/courses');
+    if(!r.ok) return;
+    const payload = await r.json();
+    const byCode = {};
+    (payload.courses || []).forEach(c => { byCode[c.code] = c; });
+
+    const elecRegex = /^(CAP|CDA|CEN|CIS|CNT|COP|COT)\s[34]/;
+    const requiredTrackCodes = new Set([...Object.values(allNodes), ...hardComp]);
+
+    const speechComp = [], scienceComp = [], elecComp = [];
+    const speechIp   = [], scienceIp   = [], elecIp   = [];
+
+    // Scan completed (past semesters) first
+    const compCodes = [...comp].filter(c => !hardComp.has(c)).sort();
+    for(const code of compCodes){
+      const c = byCode[code];
+      if(!c) continue;
+      const tags = Array.isArray(c.tags) ? c.tags : [];
+      if(tags.includes('speech') && speechComp.length < breadthSlots.speech.length) speechComp.push(code);
+      if(tags.includes('science') && scienceComp.length < breadthSlots.science.length) scienceComp.push(code);
+      const isCoreTrack = requiredTrackCodes.has(code) || String(c.category || '').trim().toLowerCase() === 'cs core';
+      if(tags.includes('elective') && elecRegex.test(code) && !isCoreTrack && elecComp.length < breadthSlots.elective.length) elecComp.push(code);
+    }
+
+    // Then scan in-progress (current semester) for remaining unfilled slots
+    const ipCodes = [...ip].sort();
+    for(const code of ipCodes){
+      const c = byCode[code];
+      if(!c) continue;
+      const tags = Array.isArray(c.tags) ? c.tags : [];
+      if(tags.includes('speech') && (speechComp.length + speechIp.length) < breadthSlots.speech.length) speechIp.push(code);
+      if(tags.includes('science') && (scienceComp.length + scienceIp.length) < breadthSlots.science.length) scienceIp.push(code);
+      const isCoreTrack = requiredTrackCodes.has(code) || String(c.category || '').trim().toLowerCase() === 'cs core';
+      if(tags.includes('elective') && elecRegex.test(code) && !isCoreTrack && (elecComp.length + elecIp.length) < breadthSlots.elective.length) elecIp.push(code);
+    }
+
+    applyBreadthStatus(speechComp, scienceComp, elecComp, speechIp, scienceIp, elecIp);
+  }catch{}
+})();
+
+// Highlight classes with no compatible sections for current blocked days/times.
+(async function markNoCompatibleSlots(){
+  const gc=new Set(JSON.parse(localStorage.getItem('cal_'+si+'_greyedCols')||'[]'));
+  const gr=new Set(JSON.parse(localStorage.getItem('cal_'+si+'_greyedRows')||'[]'));
+  const checks = await Promise.all(Object.entries(allNodes).map(async ([nid, code]) => {
+    try{
+      const r=await fetch(API+'/api/courses/'+code.replace(/\s+/g,'-'));
+      if(!r.ok) return null;
+      const d=await r.json();
+      const ss=Array.isArray(d.sections)?d.sections:[];
+      if(!ss.length) return null;
+      return ss.some(s=>sectionCompatible(s,gc,gr)) ? null : nid;
+    }catch{return null;}
+  }));
+  checks.forEach(nid=>{
+    if(!nid) return;
+    const btn=document.getElementById(nid)?.querySelector('.node-btn');
+    if(!btn) return;
+    if(btn.classList.contains('locked')) return;
+    btn.classList.add('no-slots');
+    btn.title = NO_SLOTS_MSG;
+  });
+})();
+</script>
+</body>
+</html>

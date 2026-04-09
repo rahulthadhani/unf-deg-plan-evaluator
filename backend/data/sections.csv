@@ -1,0 +1,101 @@
+course_code,crn,days,start_time,end_time,dates,room,professor,format
+BSC 2010C,820001,2|4,9:30 AM,10:45 AM,"January 12, 2026 - May 1, 2026","Building 4, Room 2101",Dr. A. Patel,In-Person
+BSC 2010C,820002,2|4,1:30 PM,2:45 PM,"January 12, 2026 - May 1, 2026","Building 34, Room 2210",Dr. K. Rivera,In-Person
+BSC 2010C,820003,,,,"January 12, 2026 - May 1, 2026",Online,Prof. E. Johnson,Online
+BSC 2011C,820011,1|3|5,11:00 AM,11:50 AM,"January 12, 2026 - May 1, 2026","Building 8, Room 1204",Prof. S. Martinez,In-Person
+BSC 2011C,820012,1|3,3:05 PM,4:20 PM,"January 12, 2026 - May 1, 2026","Building 45, Room 1015",Prof. L. Brooks,In-Person
+BSC 2011C,820013,,,,"January 12, 2026 - May 1, 2026",Online,Dr. C. Moore,Online
+CAP 4630,820021,2|4,1:30 PM,2:45 PM,"January 12, 2026 - May 1, 2026","Building 15, Room 1302",Dr. J. Lee,In-Person
+CAP 4630,820022,3,6:00 PM,8:45 PM,"January 12, 2026 - May 1, 2026","Building 51, Room 1103",Dr. T. Shah,In-Person
+CAP 4630,820023,,,,"January 12, 2026 - May 1, 2026",Online,Prof. R. Adams,Online
+CAP 4770,820031,1|3,3:05 PM,4:20 PM,"January 12, 2026 - May 1, 2026","Building 34, Room 2210",Prof. M. Nguyen,In-Person
+CAP 4770,820032,2|4,9:30 AM,10:45 AM,"January 12, 2026 - May 1, 2026","Building 51, Room 1201",Prof. E. Johnson,In-Person
+CAP 4770,820033,,,,"January 12, 2026 - May 1, 2026",Online,Dr. A. Patel,Online
+CDA 3100,820041,3,6:00 PM,8:45 PM,"January 12, 2026 - May 1, 2026","Building 45, Room 1015",Dr. K. Rivera,In-Person
+CDA 3100,820042,1|3|5,11:00 AM,11:50 AM,"January 12, 2026 - May 1, 2026","Building 58, Room 2408",Dr. C. Moore,In-Person
+CDA 3100,820043,,,,"January 12, 2026 - May 1, 2026",Online,Prof. S. Martinez,Online
+CDA 4205,820051,2|4,9:30 AM,10:45 AM,"January 12, 2026 - May 1, 2026","Building 51, Room 1103",Prof. L. Brooks,In-Person
+CDA 4205,820052,2|4,1:30 PM,2:45 PM,"January 12, 2026 - May 1, 2026","Building 59, Room 1406",Prof. R. Adams,In-Person
+CDA 4205,820053,,,,"January 12, 2026 - May 1, 2026",Online,Dr. J. Lee,Online
+CEN 4010,820061,1|3|5,11:00 AM,11:50 AM,"January 12, 2026 - May 1, 2026","Building 51, Room 1201",Dr. T. Shah,In-Person
+CEN 4010,820062,1|3,3:05 PM,4:20 PM,"January 12, 2026 - May 1, 2026","Building 4, Room 2101",Dr. A. Patel,In-Person
+CEN 4072,820071,2|4,1:30 PM,2:45 PM,"January 12, 2026 - May 1, 2026","Building 58, Room 2408",Prof. E. Johnson,In-Person
+CHM 2045C,820081,1|3,3:05 PM,4:20 PM,"January 12, 2026 - May 1, 2026","Building 59, Room 1406",Dr. C. Moore,In-Person
+CHM 2045C,820082,2|4,9:30 AM,10:45 AM,"January 12, 2026 - May 1, 2026","Building 15, Room 1302",Dr. J. Lee,In-Person
+CHM 2046C,820091,3,6:00 PM,8:45 PM,"January 12, 2026 - May 1, 2026","Building 4, Room 2101",Prof. R. Adams,In-Person
+CHM 2046C,820092,1|3|5,11:00 AM,11:50 AM,"January 12, 2026 - May 1, 2026","Building 34, Room 2210",Prof. M. Nguyen,In-Person
+CIS 3253,820101,2|4,9:30 AM,10:45 AM,"January 12, 2026 - May 1, 2026","Building 8, Room 1204",Dr. A. Patel,In-Person
+CIS 3253,820102,2|4,1:30 PM,2:45 PM,"January 12, 2026 - May 1, 2026","Building 45, Room 1015",Dr. K. Rivera,In-Person
+CIS 3253,820103,,,,"January 12, 2026 - May 1, 2026",Online,Prof. E. Johnson,Online
+CIS 4360,820111,1|3|5,11:00 AM,11:50 AM,"January 12, 2026 - May 1, 2026","Building 15, Room 1302",Prof. S. Martinez,In-Person
+CIS 4360,820112,1|3,3:05 PM,4:20 PM,"January 12, 2026 - May 1, 2026","Building 51, Room 1103",Prof. L. Brooks,In-Person
+CIS 4360,820113,,,,"January 12, 2026 - May 1, 2026",Online,Dr. C. Moore,Online
+CNT 4504,820121,2|4,1:30 PM,2:45 PM,"January 12, 2026 - May 1, 2026","Building 34, Room 2210",Dr. J. Lee,In-Person
+CNT 4504,820122,3,6:00 PM,8:45 PM,"January 12, 2026 - May 1, 2026","Building 51, Room 1201",Dr. T. Shah,In-Person
+CNT 4504,820123,,,,"January 12, 2026 - May 1, 2026",Online,Prof. R. Adams,Online
+CNT 4713,820131,1|3,3:05 PM,4:20 PM,"January 12, 2026 - May 1, 2026","Building 45, Room 1015",Prof. M. Nguyen,In-Person
+CNT 4713,820132,2|4,9:30 AM,10:45 AM,"January 12, 2026 - May 1, 2026","Building 58, Room 2408",Prof. E. Johnson,In-Person
+COP 2220,820141,3,6:00 PM,8:45 PM,"January 12, 2026 - May 1, 2026","Building 51, Room 1103",Dr. K. Rivera,In-Person
+COP 2220,820142,1|3|5,11:00 AM,11:50 AM,"January 12, 2026 - May 1, 2026","Building 59, Room 1406",Dr. C. Moore,In-Person
+COP 2220,820143,,,,"January 12, 2026 - May 1, 2026",Online,Prof. S. Martinez,Online
+COP 3404,820151,2|4,9:30 AM,10:45 AM,"January 12, 2026 - May 1, 2026","Building 51, Room 1201",Prof. L. Brooks,In-Person
+COP 3404,820152,2|4,1:30 PM,2:45 PM,"January 12, 2026 - May 1, 2026","Building 4, Room 2101",Prof. R. Adams,In-Person
+COP 3503,482910,2|4,9:30 AM,10:45 AM,"January 12, 2026 - May 1, 2026","Building 51, Room 1201",Prof. Sarah Martinez,In-Person
+COP 3503,519384,1|3|5,11:00 AM,11:50 AM,"January 12, 2026 - May 1, 2026","Building 15, Room 1302",Dr. Kevin Patel,In-Person
+COP 3503,603741,3,6:00 PM,8:45 PM,"January 12, 2026 - May 1, 2026","Building 51, Room 1103",Prof. Emily Johnson,In-Person
+COP 3503,728405,,,,"January 12, 2026 - May 1, 2026",Online,Dr. James Lee,Online
+COP 3530,820171,2|4,1:30 PM,2:45 PM,"January 12, 2026 - May 1, 2026","Building 59, Room 1406",Prof. E. Johnson,In-Person
+COP 3530,820172,3,6:00 PM,8:45 PM,"January 12, 2026 - May 1, 2026","Building 15, Room 1302",Prof. S. Martinez,In-Person
+COP 3530,820173,,,,"January 12, 2026 - May 1, 2026",Online,Dr. K. Rivera,Online
+COP 3703,820181,1|3,3:05 PM,4:20 PM,"January 12, 2026 - May 1, 2026","Building 4, Room 2101",Dr. C. Moore,In-Person
+COP 3703,820182,2|4,9:30 AM,10:45 AM,"January 12, 2026 - May 1, 2026","Building 34, Room 2210",Dr. J. Lee,In-Person
+COP 3703,820183,,,,"January 12, 2026 - May 1, 2026",Online,Prof. L. Brooks,Online
+COP 4331,820191,3,6:00 PM,8:45 PM,"January 12, 2026 - May 1, 2026","Building 8, Room 1204",Prof. R. Adams,In-Person
+COP 4331,820192,1|3|5,11:00 AM,11:50 AM,"January 12, 2026 - May 1, 2026","Building 45, Room 1015",Prof. M. Nguyen,In-Person
+COP 4331,820193,,,,"January 12, 2026 - May 1, 2026",Online,Dr. T. Shah,Online
+COP 4610,820201,2|4,9:30 AM,10:45 AM,"January 12, 2026 - May 1, 2026","Building 15, Room 1302",Dr. A. Patel,In-Person
+COP 4610,820202,2|4,1:30 PM,2:45 PM,"January 12, 2026 - May 1, 2026","Building 51, Room 1103",Dr. K. Rivera,In-Person
+COP 4610,820203,,,,"January 12, 2026 - May 1, 2026",Online,Prof. E. Johnson,Online
+COP 4620,820211,1|3|5,11:00 AM,11:50 AM,"January 12, 2026 - May 1, 2026","Building 34, Room 2210",Prof. S. Martinez,In-Person
+COT 3100,820221,2|4,1:30 PM,2:45 PM,"January 12, 2026 - May 1, 2026","Building 45, Room 1015",Dr. J. Lee,In-Person
+COT 3100,820222,3,6:00 PM,8:45 PM,"January 12, 2026 - May 1, 2026","Building 58, Room 2408",Dr. T. Shah,In-Person
+COT 3100,820223,,,,"January 12, 2026 - May 1, 2026",Online,Prof. R. Adams,Online
+COT 3210,820231,1|3,3:05 PM,4:20 PM,"January 12, 2026 - May 1, 2026","Building 51, Room 1103",Prof. M. Nguyen,In-Person
+COT 3210,820232,2|4,9:30 AM,10:45 AM,"January 12, 2026 - May 1, 2026","Building 59, Room 1406",Prof. E. Johnson,In-Person
+COT 3210,820233,,,,"January 12, 2026 - May 1, 2026",Online,Dr. A. Patel,Online
+COT 4400,820241,3,6:00 PM,8:45 PM,"January 12, 2026 - May 1, 2026","Building 51, Room 1201",Dr. K. Rivera,In-Person
+COT 4400,820242,1|3|5,11:00 AM,11:50 AM,"January 12, 2026 - May 1, 2026","Building 4, Room 2101",Dr. C. Moore,In-Person
+MAC 1147,820251,2|4,9:30 AM,10:45 AM,"January 12, 2026 - May 1, 2026","Building 58, Room 2408",Prof. L. Brooks,In-Person
+MAC 1147,820252,2|4,1:30 PM,2:45 PM,"January 12, 2026 - May 1, 2026","Building 8, Room 1204",Prof. R. Adams,In-Person
+MAC 1147,820253,,,,"January 12, 2026 - May 1, 2026",Online,Dr. J. Lee,Online
+MAC 2311,820261,1|3|5,11:00 AM,11:50 AM,"January 12, 2026 - May 1, 2026","Building 59, Room 1406",Dr. T. Shah,In-Person
+MAC 2311,820262,1|3,3:05 PM,4:20 PM,"January 12, 2026 - May 1, 2026","Building 15, Room 1302",Dr. A. Patel,In-Person
+MAC 2311,820263,,,,"January 12, 2026 - May 1, 2026",Online,Prof. M. Nguyen,Online
+MAC 2312,820271,2|4,1:30 PM,2:45 PM,"January 12, 2026 - May 1, 2026","Building 4, Room 2101",Prof. E. Johnson,In-Person
+MAC 2312,820272,3,6:00 PM,8:45 PM,"January 12, 2026 - May 1, 2026","Building 34, Room 2210",Prof. S. Martinez,In-Person
+MAC 2312,820273,,,,"January 12, 2026 - May 1, 2026",Online,Dr. K. Rivera,Online
+MAS 3105,820281,1|3,3:05 PM,4:20 PM,"January 12, 2026 - May 1, 2026","Building 8, Room 1204",Dr. C. Moore,In-Person
+MAS 3105,820282,2|4,9:30 AM,10:45 AM,"January 12, 2026 - May 1, 2026","Building 45, Room 1015",Dr. J. Lee,In-Person
+MAS 3105,820283,,,,"January 12, 2026 - May 1, 2026",Online,Prof. L. Brooks,Online
+PHY 2048C,820291,3,6:00 PM,8:45 PM,"January 12, 2026 - May 1, 2026","Building 15, Room 1302",Prof. R. Adams,In-Person
+PHY 2048C,820292,1|3|5,11:00 AM,11:50 AM,"January 12, 2026 - May 1, 2026","Building 51, Room 1103",Prof. M. Nguyen,In-Person
+PHY 2049,820301,2|4,9:30 AM,10:45 AM,"January 12, 2026 - May 1, 2026","Building 34, Room 2210",Dr. A. Patel,In-Person
+SPC 1608,820311,1|3|5,11:00 AM,11:50 AM,"January 12, 2026 - May 1, 2026","Building 45, Room 1015",Prof. S. Martinez,In-Person
+SPC 1608,820312,1|3,3:05 PM,4:20 PM,"January 12, 2026 - May 1, 2026","Building 58, Room 2408",Prof. L. Brooks,In-Person
+SPC 2600,820321,2|4,1:30 PM,2:45 PM,"January 12, 2026 - May 1, 2026","Building 51, Room 1103",Dr. J. Lee,In-Person
+SPC 2600,820322,3,6:00 PM,8:45 PM,"January 12, 2026 - May 1, 2026","Building 59, Room 1406",Dr. T. Shah,In-Person
+SPC 2608,820331,1|3,3:05 PM,4:20 PM,"January 12, 2026 - May 1, 2026","Building 51, Room 1201",Prof. M. Nguyen,In-Person
+SPC 2608,820332,2|4,9:30 AM,10:45 AM,"January 12, 2026 - May 1, 2026","Building 4, Room 2101",Prof. E. Johnson,In-Person
+SPC 2608,820333,,,,"January 12, 2026 - May 1, 2026",Online,Dr. A. Patel,Online
+SPC 3710,820341,3,6:00 PM,8:45 PM,"January 12, 2026 - May 1, 2026","Building 58, Room 2408",Dr. K. Rivera,In-Person
+SPC 3710,820342,1|3|5,11:00 AM,11:50 AM,"January 12, 2026 - May 1, 2026","Building 8, Room 1204",Dr. C. Moore,In-Person
+SPC 3710,820343,,,,"January 12, 2026 - May 1, 2026",Online,Prof. S. Martinez,Online
+STA 3032,820351,2|4,9:30 AM,10:45 AM,"January 12, 2026 - May 1, 2026","Building 59, Room 1406",Prof. L. Brooks,In-Person
+STA 3032,820352,2|4,1:30 PM,2:45 PM,"January 12, 2026 - May 1, 2026","Building 15, Room 1302",Prof. R. Adams,In-Person
+STA 3032,820353,,,,"January 12, 2026 - May 1, 2026",Online,Dr. J. Lee,Online
+COP 3503,910001,2|4,9:30 AM,11:10 AM,"May 18, 2026 - August 7, 2026","Building 51, Room 1201",Dr. M. Nguyen,In-Person
+CDA 3100,910002,1|3|5,10:00 AM,10:50 AM,"May 18, 2026 - August 7, 2026","Building 58, Room 1108",Prof. R. Kim,In-Person
+CIS 3253,910003,,,,"May 18, 2026 - August 7, 2026",Online,Prof. D. Walker,Online
+CNT 4504,910004,2|4,1:30 PM,3:10 PM,"May 18, 2026 - August 7, 2026","Building 15, Room 3105",Dr. H. Patel,In-Person
+COP 3703,910005,1|3,6:00 PM,8:45 PM,"May 18, 2026 - August 7, 2026","Building 45, Room 2018",Dr. S. Chen,In-Person
+MAC 1147,910006,1|3|5,9:00 AM,9:50 AM,"May 18, 2026 - August 7, 2026","Building 34, Room 1101",Prof. J. Martinez,In-Person

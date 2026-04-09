@@ -1,0 +1,883 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Catalog - UNF</title>
+  <link rel="stylesheet" href="styles/shared.css">
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .catalog-layout {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .filters-pane {
+      width: 262px;
+      flex-shrink: 0;
+      background: var(--white);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .filters-head {
+      background: var(--navy);
+      color: var(--white);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 10px 12px;
+      border-bottom: 2px solid var(--gold);
+    }
+
+    .filters-body {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .f-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .f-group label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .f-group select,
+    .f-group input[type="checkbox"] {
+      font-family: var(--font);
+    }
+
+    .f-group select {
+      padding: 8px 9px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      background: var(--white);
+    }
+
+    .f-inline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .f-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .f-actions button {
+      flex: 1;
+      background: var(--white);
+      border: 1px solid var(--border-dark);
+      padding: 8px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--navy);
+    }
+
+    .f-actions button:hover {
+      background: var(--bg-light);
+    }
+
+    .catalog-main {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 20px;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      align-items: center;
+    }
+
+    .search-bar input {
+      flex: 1;
+      max-width: 300px;
+      padding: 9px 12px;
+      font-size: 14px;
+      font-family: var(--font);
+      border: 1px solid var(--border);
+      color: var(--text);
+      outline: none;
+    }
+
+    .search-bar input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 2px rgba(0, 145, 181, 0.15);
+    }
+
+    .search-bar button {
+      background: var(--navy);
+      color: var(--white);
+      border: none;
+      padding: 9px 20px;
+      font-size: 13px;
+      font-family: var(--font);
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      border-bottom: 3px solid var(--gold-dark);
+      transition: background .15s;
+    }
+
+    .search-bar button:hover {
+      background: var(--teal);
+      border-bottom-color: var(--teal-mid);
+    }
+
+    .sem-nav-cat {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+
+    .sem-nav-btn {
+      background: var(--navy);
+      border: none;
+      border-bottom: 3px solid var(--gold-dark);
+      color: var(--white);
+      padding: 7px 13px;
+      cursor: pointer;
+      font-size: 15px;
+      font-family: var(--font);
+      font-weight: 700;
+      transition: background .12s;
+    }
+
+    .sem-nav-btn:hover {
+      background: var(--teal);
+      border-bottom-color: var(--teal-mid);
+    }
+
+    .sem-nav-btn:disabled {
+      background: #bbb;
+      border-bottom-color: #999;
+      cursor: default;
+    }
+
+    .sem-label-cat {
+      font-size: 16px;
+      font-weight: 700;
+      min-width: 128px;
+      text-align: center;
+      color: var(--navy);
+    }
+
+    .results-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 20px;
+    }
+
+    .results-count {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .suggest-pane {
+      width: 290px;
+      flex-shrink: 0;
+      background: var(--white);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .enrolled-pane {
+      width: 280px;
+      flex-shrink: 0;
+      background: var(--white);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .suggest-head {
+      background: var(--navy);
+      color: var(--white);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 10px 12px;
+      border-bottom: 2px solid var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .suggest-head button {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, .45);
+      color: var(--white);
+      font-size: 11px;
+      padding: 4px 8px;
+      cursor: pointer;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .suggest-head button:hover {
+      background: rgba(255, 255, 255, .12);
+    }
+
+    .suggest-term {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .suggest-list {
+      flex: 1;
+      overflow: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .suggest-subhead {
+      background: var(--navy);
+      color: var(--white);
+      border-bottom: 2px solid var(--gold);
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .suggest-enrolled-list {
+      flex: 1;
+      overflow: auto;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .se-card {
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--gold);
+      background: #fffdf6;
+      padding: 8px 9px;
+    }
+
+    .se-code {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .se-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .s-card {
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--teal);
+      padding: 9px 10px;
+      background: var(--bg-light);
+    }
+
+    .s-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .s-code {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .s-credits {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .s-name {
+      font-size: 13px;
+      color: var(--text);
+      margin-top: 2px;
+    }
+
+    .s-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .s-reason {
+      font-size: 12px;
+      color: #0d4b6b;
+      margin-top: 5px;
+      background: var(--teal-light);
+      border: 1px solid #b6deea;
+      padding: 2px 6px;
+      display: inline-block;
+    }
+
+    .s-open {
+      margin-top: 7px;
+      background: var(--white);
+      border: 1px solid var(--border-dark);
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--navy);
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .s-open:hover {
+      background: var(--teal-light);
+    }
+
+    .s-empty {
+      font-size: 13px;
+      color: var(--text-muted);
+      padding: 8px 2px;
+      line-height: 1.5;
+    }
+
+    .s-full-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .s-full-stamp {
+      border: 5px solid #c62828;
+      color: #c62828;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      padding: 14px 18px;
+      text-transform: uppercase;
+      transform: rotate(-12deg);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: inset 0 0 0 2px rgba(198, 40, 40, 0.25);
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .compact-catalog .results-wrap {
+      padding: 10px 16px;
+    }
+
+    .compact-catalog .course-row {
+      padding: 8px 10px;
+      margin-bottom: 4px;
+    }
+
+    .compact-catalog .course-name {
+      font-size: 11px;
+    }
+
+    .compact-catalog .course-meta {
+      font-size: 10px;
+    }
+
+    @media (max-width: 1600px) {
+      .enrolled-pane {
+        display: none;
+      }
+    }
+
+    @media (max-width: 1320px) {
+
+      .suggest-pane,
+      .enrolled-pane {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="site-header">
+    <img src="assets/UNF-logo-white.png" alt="University of North Florida" class="unf-logo">
+    <nav class="header-nav">
+      <button onclick="location.href='landing-page.html'">Home</button>
+      <button onclick="location.href='calendar.html'">Class Schedule</button>
+      <button onclick="location.href='degree-planner.html'">Degree Plan</button>
+      <button class="active" onclick="location.href='catalog.html'">Course Catalog</button>
+    </nav>
+  </div>
+  <div class="page-title-bar">
+    <h1>Course Catalog</h1>
+    <div class="subtitle">BS Computer Science - browse and search available courses</div>
+  </div>
+  <div class="section-divider"></div>
+  <div id="filter-banner" class="filter-banner" style="display:none;"><span id="filter-label"></span><button
+      onclick="location.href='catalog.html'">Show All Courses</button></div>
+
+  <div class="catalog-layout">
+    <aside class="filters-pane">
+      <div class="filters-head">Filters</div>
+      <div class="filters-body">
+        <div class="f-group">
+          <label for="f-status">Status</label>
+          <select id="f-status">
+            <option value="all">All Statuses</option>
+            <option value="available">Available</option>
+            <option value="inprogress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="locked">Locked</option>
+            <option value="noslots">No Compatible Slots</option>
+          </select>
+        </div>
+
+        <div class="f-group">
+          <label for="f-category">Category</label>
+          <select id="f-category">
+            <option value="all">All Categories</option>
+          </select>
+        </div>
+
+        <div class="f-group">
+          <label for="f-credits">Credits</label>
+          <select id="f-credits">
+            <option value="all">Any Credits</option>
+            <option value="3">3 Credits</option>
+            <option value="4">4 Credits</option>
+          </select>
+        </div>
+
+        <div class="f-group">
+          <label for="f-delivery">Delivery</label>
+          <select id="f-delivery">
+            <option value="all">Any Delivery</option>
+            <option value="inperson">Has In-Person</option>
+            <option value="online">Has Online</option>
+          </select>
+        </div>
+
+        <div class="f-group">
+          <label for="f-offered">Offered Term</label>
+          <select id="f-offered">
+            <option value="all">Any Term</option>
+            <option value="F">Fall</option>
+            <option value="S">Spring</option>
+            <option value="Su">Summer</option>
+          </select>
+        </div>
+
+        <div class="f-group">
+          <label>View Density</label>
+          <label class="f-inline"><input type="checkbox" id="compact-toggle"> Compact Mode</label>
+        </div>
+
+        <div class="f-actions">
+          <button id="clear-filters" type="button">Clear</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="catalog-main">
+      <div class="search-bar">
+        <input type="text" id="q" placeholder="Search by course code, title, or category...">
+        <button onclick="doSearch()">Search</button>
+        <div class="sem-nav-cat">
+          <button class="sem-nav-btn" id="sem-prev-btn">&#8592;</button>
+          <span class="sem-label-cat" id="sem-label-cat"></span>
+          <button class="sem-nav-btn" id="sem-next-btn">&#8594;</button>
+        </div>
+      </div>
+      <div class="results-wrap">
+        <div class="results-count" id="cnt"></div>
+        <div id="list">
+          <div class="loading">Loading courses...</div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="suggest-pane">
+      <div class="suggest-head">
+        <span>Suggested Classes</span>
+        <button id="refresh-suggest" type="button">Refresh</button>
+      </div>
+      <div class="suggest-term" id="suggest-term"></div>
+      <div class="suggest-list" id="suggest-list">
+        <div class="loading">Loading suggestions...</div>
+      </div>
+    </aside>
+
+    <aside class="enrolled-pane">
+      <div class="suggest-subhead">Classes Enrolled This Semester</div>
+      <div class="suggest-enrolled-list" id="suggest-enrolled"></div>
+    </aside>
+  </div>
+
+  <script>
+    const API = 'http://localhost:8000';
+    const MAX_COURSES_PER_SEMESTER = 6;
+    const NO_SLOTS_MSG = 'No compatible sections available with your current blocked days/times this semester.';
+    const FL = { elective: 'Filtering: <strong>CS Elective</strong> - Any 3XXX/4XXX CAP/CDA/CEN/CIS/CNT/COP/COT', science: 'Filtering: <strong>Science</strong> requirement', speech: 'Filtering: <strong>Speech / Public Speaking</strong> requirement' };
+    const up = new URLSearchParams(location.search), fk = up.get('filter') || '';
+    if (fk && FL[fk]) { document.getElementById('filter-banner').style.display = 'flex'; document.getElementById('filter-label').innerHTML = FL[fk]; }
+
+    let si = parseInt(localStorage.getItem('cal_semIdx') || '0');
+    let comp = new Set(['COP 2220']);
+    for (let i = 0; i < si; i++)JSON.parse(localStorage.getItem('cal_' + i + '_courses') || '[]').forEach(c => comp.add(c.code));
+    let gc = new Set(JSON.parse(localStorage.getItem('cal_' + si + '_greyedCols') || '[]'));
+    let gr = new Set(JSON.parse(localStorage.getItem('cal_' + si + '_greyedRows') || '[]'));
+
+    const els = {
+      q: document.getElementById('q'),
+      list: document.getElementById('list'),
+      cnt: document.getElementById('cnt'),
+      fStatus: document.getElementById('f-status'),
+      fCategory: document.getElementById('f-category'),
+      fCredits: document.getElementById('f-credits'),
+      fDelivery: document.getElementById('f-delivery'),
+      fOffered: document.getElementById('f-offered'),
+      compact: document.getElementById('compact-toggle'),
+      clear: document.getElementById('clear-filters'),
+    };
+
+    let baseCourses = [];
+    const detailCache = {};
+    const noSlotsCache = {};
+    const SEMS = [];
+    for (let y = 2024; y <= 2030; y++) { SEMS.push({ name: 'Spring', year: y }); SEMS.push({ name: 'Summer', year: y }); SEMS.push({ name: 'Fall', year: y }); }
+    let sem = SEMS[si] || SEMS[0];
+
+    function updateSemState() {
+      comp = new Set(['COP 2220']);
+      for (let i = 0; i < si; i++)JSON.parse(localStorage.getItem('cal_' + i + '_courses') || '[]').forEach(c => comp.add(c.code));
+      gc = new Set(JSON.parse(localStorage.getItem('cal_' + si + '_greyedCols') || '[]'));
+      gr = new Set(JSON.parse(localStorage.getItem('cal_' + si + '_greyedRows') || '[]'));
+      sem = SEMS[si] || SEMS[0];
+      document.getElementById('sem-label-cat').textContent = sem.name + ' ' + sem.year;
+      document.getElementById('sem-prev-btn').disabled = si === 0;
+      document.getElementById('sem-next-btn').disabled = si === SEMS.length - 1;
+    }
+
+    function courseHref(code) { return 'courses/course-' + String(code).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.html'; }
+    function catalogCourseHref(code) {
+      try { const _es = JSON.parse(localStorage.getItem('eval_state') || '{}'); if (_es.activeTaskId === 4) localStorage.setItem('eval_t4_catalog_code', String(code)); } catch { }
+      return courseHref(code);
+    }
+    function semEnrolledCourses() { return JSON.parse(localStorage.getItem('cal_' + si + '_courses') || '[]') || []; }
+    function inProgressSet() { return new Set(semEnrolledCourses().map(c => c.code)); }
+    function enrolledCountNow() { return semEnrolledCourses().length; }
+    function st(c) { const ip = inProgressSet(); if (comp.has(c.code)) return 'completed'; if (ip.has(c.code)) return 'inprogress'; if (!c.prereqs.every(p => comp.has(p))) return 'locked'; return 'available'; }
+    function currentTerm() { const sem = SEMS[si] || SEMS[0]; return sem.name; }
+    function prettyDay(d) { return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d] || '?'; }
+    function fmtSection(sec) {
+      const ds = Array.isArray(sec.days) ? sec.days : [];
+      if (!ds.length || !sec.startTime || !sec.endTime) return 'Online / Async';
+      return ds.map(prettyDay).join('/') + ' ' + sec.startTime + ' - ' + sec.endTime;
+    }
+
+    function tQ(t) { const m = String(t || '').match(/(\d+):(\d+)\s*(AM|PM)/i); if (!m) return null; let h = +m[1], min = +m[2], p = m[3].toUpperCase(); if (p === 'PM' && h !== 12) h += 12; if (p === 'AM' && h === 12) h = 0; return (h - 6) * 4 + Math.floor(min / 15); }
+    function tQE(t) { const m = String(t || '').match(/(\d+):(\d+)\s*(AM|PM)/i); if (!m) return null; let h = +m[1], min = +m[2] - 1, p = m[3].toUpperCase(); if (p === 'PM' && h !== 12) h += 12; if (p === 'AM' && h === 12) h = 0; if (min < 0) { min = 59; h--; } return (h - 6) * 4 + Math.floor(min / 15); }
+    function sectionCompatible(s) { const ds = s.days || []; if (!ds.length || !s.startTime) return true; const sq = tQ(s.startTime), eq = tQE(s.endTime); if (sq === null || eq === null) return true; if (ds.some(d => gc.has(d))) return false; for (let h = Math.floor(sq / 4); h <= Math.floor(eq / 4); h++) { if (gr.has(h)) return false; } return true; }
+
+    // Keep in sync with scripts/course-detail.js – filters sections to those matching
+    // the current semester by checking the start-date month of the dates field.
+    const SPRING_MONTHS = new Set(['January', 'February', 'March', 'April']);
+    const SUMMER_MONTHS = new Set(['May', 'June', 'July']);
+    const FALL_MONTHS = new Set(['August', 'September', 'October', 'November', 'December']);
+    function sectionMatchesSem(s) {
+      const dates = (s.dates || '').trim();
+      if (!dates) return true;
+      const m = dates.match(/^(\w+)\s+\d+,\s+(\d{4})/);
+      if (!m) return true;
+      if (parseInt(m[2]) !== sem.year) return false;
+      if (sem.name === 'Spring') return SPRING_MONTHS.has(m[1]);
+      if (sem.name === 'Summer') return SUMMER_MONTHS.has(m[1]);
+      if (sem.name === 'Fall') return FALL_MONTHS.has(m[1]);
+      return true;
+    }
+
+    async function ensureDetail(code) {
+      if (detailCache[code]) return detailCache[code];
+      try { const r = await fetch(API + '/api/courses/' + code.replace(/\s+/g, '-')); if (!r.ok) { detailCache[code] = { sections: [] }; return detailCache[code]; } detailCache[code] = await r.json(); }
+      catch { detailCache[code] = { sections: [] }; }
+      return detailCache[code];
+    }
+
+    async function ensureNoSlots(courses) {
+      const work = courses.filter(c => noSlotsCache[c.code] === undefined);
+      await Promise.all(work.map(async c => {
+        const d = await ensureDetail(c.code);
+        const ss = (Array.isArray(d.sections) ? d.sections : []).filter(sectionMatchesSem);
+        if (!ss.length) { noSlotsCache[c.code] = true; return; }  // no sections this term
+        noSlotsCache[c.code] = !ss.some(sectionCompatible);
+      }));
+    }
+
+    async function ensureCategories(courses) {
+      const seen = new Set(['all']);
+      const options = ['<option value="all">All Categories</option>'];
+      courses.map(c => c.category).filter(Boolean).sort().forEach(cat => { if (seen.has(cat)) return; seen.add(cat); options.push('<option value="' + cat + '">' + cat + '</option>'); });
+      els.fCategory.innerHTML = options.join('');
+    }
+
+    function hasDelivery(code, mode) {
+      const d = detailCache[code]; if (!d || !Array.isArray(d.sections)) return false;
+      const ss = d.sections.filter(sectionMatchesSem);
+      if (mode === 'online') return ss.some(s => (s.format || '').toLowerCase() === 'online' || !(s.days || []).length);
+      if (mode === 'inperson') return ss.some(s => (s.format || '').toLowerCase() !== 'online' && (s.days || []).length > 0);
+      return true;
+    }
+
+    function offeredHas(c, term) {
+      const offered = (c.offered || '').replace(/\s+/g, '');
+      if (term === 'Su') return offered.includes('Su');
+      if (term === 'F') return offered.split(',').includes('F');
+      if (term === 'S') return offered.split(',').includes('S');
+      return true;
+    }
+
+    function applyFilters(courses) {
+      const status = els.fStatus.value, cat = els.fCategory.value, cr = els.fCredits.value, del = els.fDelivery.value, term = els.fOffered.value;
+      return courses.filter(c => {
+        const s = st(c);
+        const showNoSlots = s !== 'locked' && !!noSlotsCache[c.code];
+        if (status !== 'all') {
+          if (status === 'noslots') { if (!showNoSlots) return false; }
+          else if (s !== status) return false;
+        }
+        if (cat !== 'all' && c.category !== cat) return false;
+        if (cr !== 'all' && String(c.credits) !== cr) return false;
+        if (del !== 'all' && !hasDelivery(c.code, del)) return false;
+        if (term !== 'all' && !offeredHas(c, term)) return false;
+        return true;
+      });
+    }
+
+    function renderList(courses) {
+      els.list.innerHTML = '';
+      els.cnt.textContent = courses.length + ' Course' + (courses.length !== 1 ? 's' : '') + ' Found';
+      if (!courses.length) { els.list.innerHTML = '<div style="font-size:13px;color:var(--text-muted);padding:16px 0;">No courses match your current filters.</div>'; return; }
+
+      courses.forEach(c => {
+        const s = st(c), pr = c.prereqs.length ? c.prereqs.join(', ') : 'None';
+        const showNoSlots = s !== 'locked' && !!noSlotsCache[c.code];
+        const row = document.createElement('button'); row.className = 'course-row';
+        row.type = 'button';
+        if (s === 'completed') row.classList.add('status-completed');
+        if (s === 'inprogress') row.classList.add('status-inprogress');
+        if (s === 'locked') row.classList.add('status-locked');
+        if (showNoSlots) row.classList.add('status-noslots');
+        if (s === 'locked') {
+          row.disabled = true;
+          row.style.cursor = 'not-allowed';
+          row.title = 'Locked: prerequisites not met';
+        } else {
+          row.onclick = () => location.href = catalogCourseHref(c.code);
+        }
+
+        const ct2 = s === 'completed' ? '<span class="course-status-tag tag-completed">Completed</span>' : '';
+        const it = s === 'inprogress' ? '<span class="course-status-tag tag-inprogress">In Progress</span>' : '';
+        const lt = s === 'locked' ? '<span class="course-status-tag tag-locked">Locked</span>' : '';
+        const nst = showNoSlots ? '<span class="course-status-tag tag-noslots">No Compatible Slots</span>' : '';
+        const msg = showNoSlots ? '<div class="no-slots-msg">' + NO_SLOTS_MSG + '</div>' : '';
+
+        row.innerHTML = '<div class="course-info"><div class="course-code">' + c.code + ct2 + it + nst + lt + '</div><div class="course-name">' + c.name + '</div><div class="course-meta">' + c.category + ' - ' + c.offered + ' - Prerequisites: ' + pr + '</div>' + msg + '</div><div class="course-credits">' + c.credits + ' cr.</div>';
+        if (showNoSlots) row.title = NO_SLOTS_MSG;
+        els.list.appendChild(row);
+      });
+    }
+
+    function rerender() {
+      const filtered = applyFilters(baseCourses);
+      renderList(filtered);
+      document.body.classList.toggle('compact-catalog', !!els.compact.checked);
+    }
+
+    function inProgressPayload() {
+      return semEnrolledCourses().map(c => ({
+        code: c.code,
+        blocks: Array.isArray(c.blocks) ? c.blocks.map(b => ({
+          day: Number(b.day),
+          startQ: Number(b.startQ),
+          endQ: Number(b.endQ)
+        })).filter(b => Number.isFinite(b.day) && Number.isFinite(b.startQ) && Number.isFinite(b.endQ)) : []
+      }));
+    }
+    async function renderEnrolledPane() {
+      const list = document.getElementById('suggest-enrolled');
+      if (!list) return;
+      const courses = semEnrolledCourses();
+      if (!courses.length) {
+        list.innerHTML = '<div class="s-empty">No classes added for this semester yet.</div>';
+        return;
+      }
+      list.innerHTML = '';
+      await Promise.all(courses.map(async c => {
+        const card = document.createElement('div');
+        card.className = 'se-card';
+        const label = c.label ? String(c.label) : '';
+        let name = c.code || '';
+        try {
+          const d = await ensureDetail(c.code || '');
+          if (d && d.name) name = d.name;
+        } catch { }
+        card.innerHTML = '<div class="se-code">' + name + '</div><div class="se-meta">' + (label || 'Scheduled section') + '</div>';
+        card.onclick = () => location.href = courseHref(c.code || '');
+        card.style.cursor = 'pointer';
+        list.appendChild(card);
+      }));
+    }
+
+    function renderSuggestions(payload) {
+      const termEl = document.getElementById('suggest-term');
+      const list = document.getElementById('suggest-list');
+      const sem = SEMS[si] || SEMS[0];
+      termEl.textContent = 'Based on ' + sem.name + ' ' + sem.year + ' availability and your blocked schedule.';
+      if (enrolledCountNow() >= MAX_COURSES_PER_SEMESTER) {
+        list.innerHTML = '<div class="s-full-wrap"><div class="s-full-stamp">Semester Is Fully Planned</div></div>';
+        return;
+      }
+
+      const plans = Array.isArray(payload && payload.plans) ? payload.plans : [];
+      if (!plans.length) {
+        list.innerHTML = '<div class="s-empty">No recommendation plan is available right now with your current constraints. Try unblocking time slots or changing enrolled classes.</div>';
+        return;
+      }
+
+      const top = plans[0];
+      const courses = Array.isArray(top.courses) ? top.courses : [];
+      if (!courses.length) {
+        list.innerHTML = '<div class="s-empty">No suggested classes were returned.</div>';
+        return;
+      }
+
+      list.innerHTML = '';
+      courses.forEach(c => {
+        const wrap = document.createElement('div');
+        wrap.className = 's-card';
+        const reasons = Array.isArray(c.reasons) ? c.reasons : [];
+        const reasonTxt = reasons.length ? reasons[0] : 'Fits current prerequisites and schedule';
+        wrap.innerHTML =
+          '<div class="s-top"><div class="s-code">' + c.code + '</div><div class="s-credits">' + c.credits + ' cr</div></div>' +
+          '<div class="s-name">' + c.name + '</div>' +
+          '<div class="s-meta">' + (c.category || '') + ' - ' + fmtSection(c.chosen_section || {}) + '</div>' +
+          '<div class="s-reason">' + reasonTxt + '</div>';
+        const btn = document.createElement('button');
+        btn.className = 's-open';
+        btn.type = 'button';
+        btn.textContent = 'Open Course';
+        btn.onclick = () => location.href = catalogCourseHref(c.code);
+        wrap.appendChild(btn);
+        list.appendChild(wrap);
+      });
+    }
+
+    async function loadSuggestions() {
+      const list = document.getElementById('suggest-list');
+      if (!list) return;
+      await renderEnrolledPane();
+      if (enrolledCountNow() >= MAX_COURSES_PER_SEMESTER) {
+        renderSuggestions({ plans: [] });
+        return;
+      }
+      list.innerHTML = '<div class="loading">Loading suggestions...</div>';
+      try {
+        const body = {
+          term: currentTerm(),
+          completed_codes: [...comp],
+          in_progress: inProgressPayload(),
+          blocked_days: [...gc],
+          blocked_hours: [...gr],
+          max_credits: 15,
+          max_courses: 5,
+          top_n: 3,
+          include_online: true,
+        };
+        const r = await fetch(API + '/api/recommend-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        if (!r.ok) throw new Error(String(r.status));
+        const data = await r.json();
+        renderSuggestions(data);
+      } catch (e) {
+        list.innerHTML = '<div class="s-empty" style="color:var(--red);">Could not load suggestions (' + e.message + ').</div>';
+      }
+    }
+
+    async function doSearch() {
+      const q = els.q.value.trim();
+      els.list.innerHTML = '<div class="loading">Searching...</div>';
+      try {
+        const p = new URLSearchParams(); if (q) p.set('q', q); if (fk) p.set('filter', fk);
+        const r = await fetch(API + '/api/courses' + (p.toString() ? '?' + p : ''));
+        if (!r.ok) throw new Error(r.status);
+        baseCourses = (await r.json()).courses || [];
+        await Promise.all([ensureNoSlots(baseCourses), ensureCategories(baseCourses), Promise.all(baseCourses.map(c => ensureDetail(c.code)))]);
+        rerender();
+        loadSuggestions();
+      } catch (e) {
+        els.list.innerHTML = '<div class="loading" style="color:var(--red)">Could not reach server (' + e.message + '). Start the backend on port 8000.</div>';
+        els.cnt.textContent = '';
+        const list = document.getElementById('suggest-list');
+        if (list) list.innerHTML = '<div class="s-empty" style="color:var(--red);">Suggestions unavailable while server is offline.</div>';
+      }
+    }
+
+    [els.fStatus, els.fCategory, els.fCredits, els.fDelivery, els.fOffered, els.compact].forEach(el => el.addEventListener('change', () => rerender()));
+    els.clear.addEventListener('click', () => { els.fStatus.value = 'all'; els.fCategory.value = 'all'; els.fCredits.value = 'all'; els.fDelivery.value = 'all'; els.fOffered.value = 'all'; els.compact.checked = false; rerender(); });
+    const refreshBtn = document.getElementById('refresh-suggest');
+    if (refreshBtn) refreshBtn.addEventListener('click', () => loadSuggestions());
+    els.q.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+    document.getElementById('sem-prev-btn').addEventListener('click', () => { if (si > 0) { si--; localStorage.setItem('cal_semIdx', si); updateSemState(); doSearch(); } });
+    document.getElementById('sem-next-btn').addEventListener('click', () => { if (si < SEMS.length - 1) { si++; localStorage.setItem('cal_semIdx', si); updateSemState(); doSearch(); } });
+    updateSemState();
+    doSearch();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UNF Degree Planner – Usability Evaluation</title>
+  <link rel="stylesheet" href="../styles/shared.css">
+  <style>
+    body { display: flex; flex-direction: column; min-height: 100vh; }
+
+    .main {
+      flex: 1;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 36px 28px 48px;
+      width: 100%;
+    }
+
+    /* ── Intro box ── */
+    .intro-box {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--teal);
+      padding: 24px 28px;
+      margin-bottom: 32px;
+    }
+    .intro-box h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 10px;
+    }
+    .intro-box p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.75;
+      margin-bottom: 8px;
+    }
+    .intro-box p:last-child { margin-bottom: 0; }
+
+    /* ── Section heading ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 14px;
+    }
+
+    /* ── Task cards ── */
+    .task-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .task-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-dark);
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      transition: box-shadow 0.15s;
+    }
+    .task-card:hover { box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+    .task-card.completed { border-left-color: var(--green); }
+
+    .task-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--navy);
+      color: var(--white);
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      letter-spacing: 0;
+    }
+    .task-card.completed .task-num { background: var(--green); }
+
+    .task-info { flex: 1; min-width: 0; }
+    .task-info .title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 3px;
+    }
+    .task-info .desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .task-meta {
+      text-align: right;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+    .task-status {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+    .status-done { background: var(--green-light); color: var(--green); }
+    .status-todo { background: var(--bg); color: var(--text-muted); }
+    .task-time {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Participant bar ── */
+    .participant-bar {
+      margin-top: 24px;
+      padding: 16px 22px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .participant-bar .p-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+    .participant-bar .p-num-input {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--navy);
+      font-variant-numeric: tabular-nums;
+      font-family: var(--font);
+      width: 72px;
+      text-align: center;
+      border: 1px solid var(--border);
+      border-bottom: 2px solid var(--navy);
+      background: var(--bg);
+      padding: 2px 6px;
+      outline: none;
+    }
+    .participant-bar .p-num-input:focus {
+      border-color: var(--teal);
+      border-bottom-color: var(--teal);
+      background: var(--white);
+    }
+    .participant-bar .p-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-left: 4px;
+    }
+
+    /* ── Reset bar ── */
+    .reset-bar {
+      margin-top: 24px;
+      padding-top: 22px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .reset-bar p {
+      font-size: 13px;
+      color: var(--text-muted);
+      flex: 1;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="site-header">
+    <img src="../assets/UNF-logo-white.png" alt="University of North Florida" class="unf-logo">
+    <nav class="header-nav">
+      <button onclick="location.href='../landing-page.html'">Home</button>
+      <button onclick="location.href='../calendar.html'">Class Schedule</button>
+      <button onclick="location.href='../degree-planner.html'">Degree Plan</button>
+      <button onclick="location.href='../catalog.html'">Course Catalog</button>
+    </nav>
+  </div>
+
+  <div class="page-title-bar">
+    <h1>Usability Evaluation</h1>
+    <div class="subtitle">Task-based evaluation of the UNF Degree Planner interface</div>
+  </div>
+  <div class="section-divider"></div>
+
+  <div class="main">
+    <div class="intro-box">
+      <h2>Welcome to the Evaluation</h2>
+      <p>
+        This session guides you through a series of realistic tasks using the UNF Degree
+        Planner. Each task presents a scenario you might encounter as a student managing
+        your coursework.
+      </p>
+      <p>
+        Before each task begins you will see a description of the scenario. A timer starts
+        once you click <strong>Begin Task</strong>. Complete each task as quickly and
+        accurately as you can. A <strong>Quit Task</strong> button is always available if
+        you are unable to complete a task.
+      </p>
+      <p>
+        <strong>Note:</strong> If you have previously used the planner, click
+        <em>Reset All Progress</em> below to start from a clean state.
+      </p>
+    </div>
+
+    <div class="section-label">Evaluation Tasks</div>
+    <div class="task-list" id="task-list"></div>
+
+    <div class="participant-bar">
+      <span class="p-label">Participant #</span>
+      <input type="number" class="p-num-input" id="participant-num" min="1" value="1">
+      <span class="p-hint">— edit to set number; increments automatically on each reset</span>
+    </div>
+
+    <div class="reset-bar">
+      <p>
+        Completed task records and app data are stored in your browser.
+        Reset clears all evaluation progress and enrolled course data so you can start fresh.
+      </p>
+      <button class="btn btn-outline" id="reset-btn">Reset All Progress</button>
+    </div>
+  </div>
+
+  <div class="site-footer">
+    © University of North Florida &nbsp;·&nbsp; 1 UNF Drive, Jacksonville, FL 32224
+    &nbsp;·&nbsp; (904) 620-1000
+  </div>
+
+  <script type="module">
+    import { TASKS, getEvalState, setEvalState, formatTime } from './evaluator.js';
+
+    // ── Participant number ────────────────────────────────────────────────────
+    function getUserNum() {
+      return parseInt(localStorage.getItem('eval_user_num') || '1');
+    }
+    function setUserNum(n) {
+      localStorage.setItem('eval_user_num', String(n));
+    }
+
+    function renderParticipantNum() {
+      document.getElementById('participant-num').value = String(getUserNum());
+    }
+
+    document.getElementById('participant-num').addEventListener('change', e => {
+      const n = Math.max(1, parseInt(e.target.value) || 1);
+      e.target.value = String(n);
+      localStorage.setItem('eval_user_num', String(n));
+    });
+
+    // ── CSV export ────────────────────────────────────────────────────────────
+    function downloadCSV(userNum, completedTasks) {
+      const rows = [['participant', 'task_id', 'task_title', 'elapsed_ms', 'time', 'clicks']];
+      TASKS.forEach(task => {
+        const d = completedTasks[task.id];
+        rows.push([
+          userNum,
+          task.id,
+          task.title,
+          d ? d.elapsed : '',
+          d ? formatTime(d.elapsed) : '',
+          d ? (d.clicks ?? 0) : '',
+        ]);
+      });
+      const csv = rows.map(r =>
+        r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')
+      ).join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `eval_participant_${userNum}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    }
+
+    // ── Task list render ──────────────────────────────────────────────────────
+    function render() {
+      const state   = getEvalState();
+      const done    = state.completedTasks || {};
+      const list    = document.getElementById('task-list');
+
+      list.innerHTML = TASKS.map(task => {
+        const isComplete = !!done[task.id];
+        const elapsed    = isComplete ? done[task.id].elapsed : null;
+        return `
+          <div class="task-card ${isComplete ? 'completed' : ''}">
+            <div class="task-num">${isComplete ? '&#10003;' : task.id}</div>
+            <div class="task-info">
+              <div class="title">Task ${task.id}: ${task.title}</div>
+              <div class="desc">${task.shortDesc}</div>
+            </div>
+            <div class="task-meta">
+              <span class="task-status ${isComplete ? 'status-done' : 'status-todo'}">
+                ${isComplete ? 'Completed' : 'Not Started'}
+              </span>
+              ${isComplete
+                ? `<span class="task-time">Time: ${formatTime(elapsed)}</span>
+                   <span class="task-time">Clicks: ${done[task.id].clicks ?? '—'}</span>`
+                : ''}
+              <button class="btn ${isComplete ? 'btn-outline' : 'btn-primary'}"
+                      onclick="launchTask(${task.id})">
+                ${isComplete ? 'Retake' : 'Start Task'}
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+
+      renderParticipantNum();
+    }
+
+    window.launchTask = function(taskId) {
+      const state = getEvalState();
+      // taskStartTime is intentionally null here — timer starts on Begin inside the shell
+      state.activeTaskId  = taskId;
+      state.taskStartTime = null;
+      setEvalState(state);
+      location.href = 'evaluator-shell.html';
+    };
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      if (!confirm(
+        'Reset all evaluation progress and app data?\n\n' +
+        'This will clear enrolled courses, calendar settings, and task completion records.\n' +
+        'Completed task data will be downloaded as a CSV before clearing.'
+      )) return;
+
+      // Save CSV for the current participant before clearing
+      const state = getEvalState();
+      const done  = state.completedTasks || {};
+      downloadCSV(getUserNum(), done);
+
+      // Advance participant counter
+      setUserNum(getUserNum() + 1);
+
+      // Clear all evaluation and calendar data
+      localStorage.removeItem('eval_state');
+      for (let i = 0; i < 24; i++) {
+        localStorage.removeItem(`cal_${i}_courses`);
+        localStorage.removeItem(`cal_${i}_greyedCols`);
+        localStorage.removeItem(`cal_${i}_greyedRows`);
+      }
+      localStorage.removeItem('cal_semIdx');
+      localStorage.removeItem('eval_t4_catalog_code');
+      localStorage.removeItem('eval_t3_meta');
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UNF Degree Planner</title>
+  <link rel="stylesheet" href="styles/shared.css">
+  <style>
+    body { display:flex; flex-direction:column; min-height:100vh; }
+    .main { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:28px; padding:40px 28px; background:var(--bg); }
+    .clock-widget { background:var(--white); border:1px solid var(--border); border-top:3px solid var(--navy); padding:22px 60px; text-align:center; box-shadow:0 1px 3px rgba(0,0,0,0.07); }
+    .clock-label { font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:0.12em; text-transform:uppercase; margin-bottom:6px; }
+    #clock { font-size:38px; font-weight:300; color:var(--navy); font-variant-numeric:tabular-nums; letter-spacing:0.04em; }
+    .clock-date { font-size:12px; color:var(--text-muted); margin-top:4px; }
+    .card-grid { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; }
+    .nav-card { background:var(--white); border:1px solid var(--border); border-bottom:4px solid var(--navy); width:198px; padding:22px 14px 18px; text-align:center; cursor:pointer; font-family:var(--font); transition:border-bottom-color 0.15s, box-shadow 0.15s, transform 0.12s; box-shadow:0 1px 3px rgba(0,0,0,0.06); }
+    .nav-card:hover { border-bottom-color:var(--teal); box-shadow:0 4px 14px rgba(0,45,107,0.12); transform:translateY(-2px); }
+    .nav-card .icon { font-size:28px; margin-bottom:10px; display:block; }
+    .nav-card .label { font-size:13px; font-weight:700; color:var(--navy); text-transform:uppercase; letter-spacing:0.06em; }
+    .nav-card .desc  { font-size:12px; color:var(--text-muted); margin-top:4px; line-height:1.5; }
+  </style>
+</head>
+<body>
+  <div class="site-header">
+    <img src="assets/UNF-logo-white.png" alt="University of North Florida" class="unf-logo">
+    <nav class="header-nav">
+      <button class="active" onclick="location.href='landing-page.html'">Home</button>
+      <button onclick="location.href='calendar.html'">Class Schedule</button>
+      <button onclick="location.href='degree-planner.html'">Degree Plan</button>
+      <button onclick="location.href='catalog.html'">Course Catalog</button>
+    </nav>
+  </div>
+  <div class="page-title-bar">
+    <h1>Degree Planner</h1>
+    <div class="subtitle">BS Computer Science &mdash; College of Computing, Engineering &amp; Construction</div>
+  </div>
+  <div class="section-divider"></div>
+  <div class="main">
+    <div class="clock-widget">
+      <div class="clock-label">Current Time</div>
+      <div id="clock">--:--:--</div>
+      <div class="clock-date" id="clock-date"></div>
+    </div>
+    <div class="card-grid">
+      <div class="nav-card" onclick="location.href='calendar.html'">
+        <span class="icon">📅</span>
+        <div class="label">Class Schedule</div>
+        <div class="desc">View and manage your semester calendar</div>
+      </div>
+      <div class="nav-card" onclick="location.href='degree-planner.html'">
+        <span class="icon">🎓</span>
+        <div class="label">Degree Plan</div>
+        <div class="desc">Track prerequisites and progress</div>
+      </div>
+      <div class="nav-card" onclick="location.href='catalog.html'">
+        <span class="icon">📖</span>
+        <div class="label">Course Catalog</div>
+        <div class="desc">Browse and search all courses</div>
+      </div>
+    </div>
+  </div>
+  <div class="site-footer">© University of North Florida &nbsp;·&nbsp; 1 UNF Drive, Jacksonville, FL 32224 &nbsp;·&nbsp; (904) 620-1000</div>
+  <script>
+    const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    function tick(){const n=new Date();document.getElementById('clock').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');document.getElementById('clock-date').textContent=DAYS[n.getDay()]+', '+MONTHS[n.getMonth()]+' '+n.getDate()+', '+n.getFullYear();}
+    tick();setInterval(tick,1000);
+  </script>
+</body>
+</html>

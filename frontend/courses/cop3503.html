@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>COP 3503 Programming II — UNF</title>
+  <link rel="stylesheet" href="shared.css">
+  <style>
+    body{display:flex;flex-direction:column;min-height:100vh;}
+    .content{display:flex;gap:20px;padding:20px 28px;align-items:flex-start;flex:1;background:var(--bg);}
+    .info-panel{width:300px;flex-shrink:0;}
+    .info-card{background:var(--white);border:1px solid var(--border);box-shadow:0 1px 2px rgba(0,0,0,.05);}
+    .info-card .card-header{display:flex;flex-direction:column;gap:2px;}
+    .info-card .crn-sub{font-size:11px;font-weight:400;opacity:.7;letter-spacing:.04em;}
+    .info-body{padding:16px;}
+    .info-body p{font-size:13px;color:var(--text);line-height:1.75;}
+    .prereq-section{margin-top:18px;padding-top:14px;border-top:1px solid var(--border);}
+    .section-label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;}
+    #prereq-chart{position:relative;}
+    .sections-panel{flex:1;}
+    .sections-header{background:var(--navy);color:var(--white);padding:9px 14px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid var(--gold);display:flex;align-items:center;justify-content:space-between;}
+    .sections-body{background:var(--white);border:1px solid var(--border);border-top:none;padding:12px;display:flex;flex-direction:column;gap:7px;}
+  </style>
+</head>
+<body>
+  <div class="site-header">
+    <img src="UNF-logo-white.png" alt="University of North Florida" class="unf-logo">
+    <nav class="header-nav">
+      <button onclick="location.href='landing-page.html'">Home</button>
+      <button onclick="location.href='calendar.html'">Class Schedule</button>
+      <button onclick="location.href='degree-planner.html'">Degree Plan</button>
+      <button onclick="location.href='catalog.html'">Course Catalog</button>
+    </nav>
+  </div>
+  <div class="page-title-bar">
+    <h1>COP 3503 — Programming II</h1>
+    <div class="subtitle">3 Credit Hours &nbsp;·&nbsp; BS Computer Science Requirement &nbsp;·&nbsp; <span id="sem-display"></span></div>
+  </div>
+  <div class="section-divider"></div>
+  <div class="content">
+    <div class="info-panel">
+      <div class="info-card">
+        <div class="card-header"><span class="crn-sub">COP 3503 · 3 Credit Hours</span>Programming II</div>
+        <div class="info-body">
+          <p>This course extends the fundamentals of programming introduced in Programming I. Students explore object-oriented programming concepts including classes, inheritance, polymorphism, and encapsulation. Topics include recursion, algorithm analysis, and an introduction to data structures such as linked lists, stacks, queues, and trees.</p>
+          <div class="prereq-section"><div class="section-label">Prerequisites &amp; Unlocks</div><div id="prereq-chart"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="sections-panel">
+      <div class="sections-header">
+        <span>Available Sections — <span id="sem-disp2"></span></span>
+        <button class="btn-primary" id="action-btn" onclick="handleAction()" style="font-size:12px;padding:6px 16px;">Add Course</button>
+      </div>
+      <div class="sections-body" id="sections-list"><div class="loading">Loading sections…</div></div>
+    </div>
+  </div>
+  <div class="site-footer">© University of North Florida &nbsp;·&nbsp; myWings Student Portal</div>
+<script>
+  const API='http://localhost:8000',CODE='COP 3503',SH=6;
+  const si=parseInt(localStorage.getItem('cal_semIdx')||'0');
+  const S=[];for(let y=2024;y<=2030;y++){S.push({name:'Spring',year:y});S.push({name:'Summer',year:y});S.push({name:'Fall',year:y});}
+  const sem=S[si]||S[0],semStr=sem.name+' '+sem.year;
+  document.getElementById('sem-display').textContent=semStr;document.getElementById('sem-disp2').textContent=semStr;
+  const k=n=>'cal_'+si+'_'+n;
+  function tQ(t){const m=t.match(/(\d+):(\d+)\s*(AM|PM)/i);if(!m)return null;let h=+m[1],min=+m[2];if(m[3].toUpperCase()==='PM'&&h!==12)h+=12;if(m[3].toUpperCase()==='AM'&&h===12)h=0;return(h-SH)*4+Math.floor(min/15);}
+  function tQE(t){const m=t.match(/(\d+):(\d+)\s*(AM|PM)/i);if(!m)return null;let h=+m[1],min=+m[2]-1;if(m[3].toUpperCase()==='PM'&&h!==12)h+=12;if(m[3].toUpperCase()==='AM'&&h===12)h=0;if(min<0){min=59;h--;}return(h-SH)*4+Math.floor(min/15);}
+  function getE(){return JSON.parse(localStorage.getItem(k('courses'))||'[]');}
+  function setE(c){localStorage.setItem(k('courses'),JSON.stringify(c));}
+  function enrolled(){return getE().some(c=>c.code===CODE);}
+  function enrolledCRN(){return(getE().find(c=>c.code===CODE)||{}).crn||null;}
+  function prevTaken(){for(let i=0;i<si;i++){if(JSON.parse(localStorage.getItem('cal_'+i+'_courses')||'[]').some(c=>c.code===CODE))return true;}return false;}
+  function getComp(){const s=new Set(['COP 2220']);for(let i=0;i<si;i++)JSON.parse(localStorage.getItem('cal_'+i+'_courses')||'[]').forEach(c=>s.add(c.code));return s;}
+  function nSt(code){const c=getComp(),p=new Set(getE().map(x=>x.code));if(c.has(code))return'completed';if(p.has(code))return'inprogress';return'none';}
+  function buildChart(unlocks){
+    const NH=26,NW=220,GAP=34,XL=8,XM=XL+NW/2,y0=0,y1=y0+NH+GAP,y2=y1+NH+GAP,CH=NH+7,TH=y2+Math.max(unlocks.length,1)*CH+10,TW=NW+XL+10;
+    const ct=document.getElementById('prereq-chart');ct.style.cssText='position:relative;width:'+TW+'px;height:'+TH+'px;';ct.innerHTML='';
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('width',TW);svg.setAttribute('height',TH);svg.style.cssText='position:absolute;top:0;left:0;pointer-events:none;';ct.appendChild(svg);
+    function L(x1,a,x2,b,col,dash){const e=document.createElementNS('http://www.w3.org/2000/svg','line');e.setAttribute('x1',x1);e.setAttribute('y1',a);e.setAttribute('x2',x2);e.setAttribute('y2',b);e.setAttribute('stroke',col||'#ccc');e.setAttribute('stroke-width','1.5');if(dash)e.setAttribute('stroke-dasharray','4,3');svg.appendChild(e);}
+    function N(yt,lbl,st,cur){const el=document.createElement('div');el.style.cssText='position:absolute;left:'+XL+'px;top:'+yt+'px;width:'+NW+'px;height:'+NH+'px;font-size:11px;font-weight:700;font-family:var(--font);display:flex;align-items:center;padding:0 10px;overflow:hidden;box-sizing:border-box;border:1px solid var(--border);background:var(--white);color:var(--text);';if(cur){el.style.borderColor='var(--navy)';el.style.background='#eef3fb';el.style.color='var(--navy)';}if(st==='completed'){el.style.borderColor='var(--green)';el.style.background='var(--green-light)';el.style.color='var(--green)';lbl='✓ '+lbl;}else if(st==='inprogress'){el.style.borderColor='var(--gold)';el.style.background='var(--gold-light)';}else if(!cur){el.style.color='var(--text-light)';el.style.borderColor='#ddd';el.style.background='#fafafa';}el.textContent=lbl;ct.appendChild(el);}
+    const ps=nSt('COP 2220');N(y0,'COP 2220',ps,false);L(XM,y0+NH,XM,y1,ps==='completed'?'#2e6b30':'#ccc');N(y1,CODE,nSt(CODE),true);const yBT=y1+NH+10;L(XM,y1+NH,XM,yBT,'#ccc');unlocks.forEach((c,i)=>{const yt=y2+i*CH,ym=yt+NH/2;L(XM,yBT,XM,ym,'#ccc',true);L(XM,ym,XL+1,ym,'#ccc',true);N(yt,c,nSt(c),false);});
+  }
+  function renderSections(secs){
+    const list=document.getElementById('sections-list'),gcSet=new Set(JSON.parse(localStorage.getItem(k('greyedCols'))||'[]')),grSet=new Set(JSON.parse(localStorage.getItem(k('greyedRows'))||'[]'));
+    const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];list.innerHTML='';
+    secs.forEach(s=>{
+      const card=document.createElement('button');card.className='section-card';card.dataset.crn=s.crn;card.dataset.days=s.days.join(',');card.dataset.st=s.startTime;card.dataset.et=s.endTime;
+      if(s.days.length&&s.startTime&&!enrolled()){const sQ=tQ(s.startTime),eQ=tQE(s.endTime),sH2=Math.floor(sQ/4),eH2=Math.floor(eQ/4);const dc=s.days.some(d=>gcSet.has(d));let rc=false;for(let h=sH2;h<=eH2;h++){if(grSet.has(h)){rc=true;break;}}if(dc||rc)card.classList.add('conflicted');}
+      const ts=s.days.length===0?'Online — Asynchronous':s.startTime+' – '+s.endTime;
+      const ds=s.days.length===0?'Online':s.days.map(d=>DN[d]).join('/');
+      card.innerHTML='<div class="section-details"><div class="s-code">'+CODE+' &nbsp;<span style="font-weight:400;font-size:11px;color:var(--text-muted);">CRN: '+s.crn+'</span></div><div><strong>'+ds+'</strong>&nbsp; '+ts+'</div><div style="color:var(--text-muted)">'+s.dates+'</div><div>'+s.room+' &nbsp;·&nbsp; '+s.professor+'</div></div>';
+      card.onclick=()=>toggle(card);list.appendChild(card);
+    });updateUI();
+  }
+  function toggle(card){if(enrolled())return;const all=document.querySelectorAll('.section-card'),was=card.classList.contains('selected');all.forEach(c=>c.classList.remove('selected','dimmed'));if(!was){card.classList.add('selected');all.forEach(c=>{if(c!==card)c.classList.add('dimmed');});}}
+  function updateUI(){
+    const btn=document.getElementById('action-btn');
+    if(prevTaken()){btn.textContent='Already Completed';btn.disabled=true;document.querySelectorAll('.section-card').forEach(c=>{c.classList.add('dimmed');c.style.pointerEvents='none';});return;}
+    const crn=enrolledCRN();
+    if(crn){btn.textContent='Drop Course';btn.className='btn-danger';btn.style.cssText='font-size:12px;padding:6px 16px;';document.querySelectorAll('.section-card').forEach(c=>c.classList.add(c.dataset.crn===crn?'selected':'dimmed'));}
+    else{btn.textContent='Add Course';btn.className='btn-primary';btn.style.cssText='font-size:12px;padding:6px 16px;';}
+  }
+  function handleAction(){
+    if(enrolled()){setE(getE().filter(c=>c.code!==CODE));location.href='calendar.html';return;}
+    const sel=document.querySelector('.section-card.selected');if(!sel){alert('Please select a section first.');return;}
+    const days=sel.dataset.days?sel.dataset.days.split(',').map(Number):[];const blocks=[];
+    if(days.length&&sel.dataset.st){const sQ=tQ(sel.dataset.st),eQ=tQE(sel.dataset.et);days.forEach(d=>blocks.push({day:d,startQ:sQ,endQ:eQ}));}
+    const upd=getE().filter(c=>c.code!==CODE);upd.push({code:CODE,crn:sel.dataset.crn,label:CODE+(days.length===0?' (Online)':' ('+sel.dataset.st+'–'+sel.dataset.et+')'),href:'cop3503.html',blocks});setE(upd);location.href='calendar.html';
+  }
+  const SS=[{crn:'482910',days:[2,4],startTime:'9:30 AM',endTime:'10:45 AM',dates:'Jan 12 – May 1, 2026',room:'Bldg 51 Rm 1201',professor:'Prof. Sarah Martinez'},{crn:'519384',days:[1,3,5],startTime:'11:00 AM',endTime:'11:50 AM',dates:'Jan 12 – May 1, 2026',room:'Bldg 15 Rm 1302',professor:'Dr. Kevin Patel'},{crn:'603741',days:[3],startTime:'6:00 PM',endTime:'8:45 PM',dates:'Jan 12 – May 1, 2026',room:'Bldg 51 Rm 1103',professor:'Prof. Emily Johnson'},{crn:'728405',days:[],startTime:'',endTime:'',dates:'Jan 12 – May 1, 2026',room:'Online (Canvas)',professor:'Dr. James Lee'}];
+  async function init(){buildChart(['COP 3530','CNT 4504','COP 3703','COP 3404']);renderSections(SS);try{const r=await fetch(API+'/api/courses/COP-3503');if(!r.ok)throw 0;const d=await r.json();if(d.unlocks&&d.unlocks.length)buildChart(d.unlocks);if(d.sections&&d.sections.length)renderSections(d.sections);}catch(e){}}
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UNF Evaluation – Task in Progress</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      font-family: 'Open Sans', Arial, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Task bar ─────────────────────────────────────────── */
+    #task-bar {
+      height: 56px;
+      background: #1b2a4a;
+      border-bottom: 3px solid #f5a800;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 14px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    #task-bar .lbl {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.5);
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    #task-id-badge {
+      font-size: 12px;
+      font-weight: 700;
+      color: #f5a800;
+      background: rgba(245,168,0,0.15);
+      border: 1px solid rgba(245,168,0,0.35);
+      border-radius: 3px;
+      padding: 2px 8px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    #task-title-display {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .timer-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .timer-icon { font-size: 16px; }
+
+    #timer {
+      font-size: 20px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: #ffffff;
+      letter-spacing: 0.04em;
+      min-width: 52px;
+      text-align: right;
+    }
+
+    /* divider between timer and quit */
+    .bar-sep {
+      width: 1px;
+      height: 28px;
+      background: rgba(255,255,255,0.18);
+      flex-shrink: 0;
+    }
+
+    #instructions-btn, #quit-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 3px;
+      color: rgba(255,255,255,0.7);
+      font-size: 12px;
+      font-weight: 700;
+      font-family: inherit;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 7px 14px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    #instructions-btn:hover {
+      background: rgba(0,145,181,0.25);
+      border-color: rgba(0,145,181,0.7);
+      color: #7fd8f0;
+    }
+    #quit-btn:hover {
+      background: rgba(192,39,45,0.25);
+      border-color: rgba(192,39,45,0.7);
+      color: #ff9999;
+    }
+
+    /* ── App iframe ─────────────────────────────────────────── */
+    #app-frame {
+      flex: 1;
+      width: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* ── Overlay base ────────────────────────────────────────── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,18,38,0.65);
+      z-index: 900;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+    .overlay.visible { display: flex; }
+
+    /* ── Intro overlay ───────────────────────────────────────── */
+    #intro-overlay { z-index: 910; }
+
+    .intro-card {
+      background: #ffffff;
+      border-radius: 6px;
+      padding: 44px 52px;
+      max-width: 520px;
+      width: 92%;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+    }
+
+    .intro-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #0091b5;
+      background: #e6f5fa;
+      border: 1px solid #b3dff0;
+      border-radius: 3px;
+      padding: 4px 10px;
+      margin-bottom: 18px;
+    }
+
+    .intro-card h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1b2a4a;
+      margin-bottom: 14px;
+      line-height: 1.3;
+    }
+
+    .intro-card .scenario {
+      font-size: 14px;
+      color: #333;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    .hint-block {
+      background: #fff8e1;
+      border: 1px solid #f5e0a0;
+      border-left: 3px solid #f5a800;
+      border-radius: 3px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #6b5200;
+      line-height: 1.6;
+      margin-bottom: 28px;
+      display: none; /* revealed by toggle */
+    }
+    .hint-block.visible { display: block; }
+
+    .hint-toggle {
+      background: none;
+      border: none;
+      color: #0091b5;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      padding: 0;
+      margin-bottom: 28px;
+      display: block;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .intro-actions { display: flex; gap: 12px; justify-content: flex-end; }
+
+    /* ── Completion overlay ──────────────────────────────────── */
+    #completion-overlay { z-index: 920; }
+
+    .completion-card {
+      background: #ffffff;
+      border-radius: 6px;
+      padding: 48px 56px;
+      max-width: 460px;
+      width: 92%;
+      text-align: center;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+    }
+
+    .check-circle {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: #2e6b30;
+      color: #fff;
+      font-size: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 22px;
+    }
+
+    .completion-card h2 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1b2a4a;
+      margin-bottom: 6px;
+    }
+
+    .completion-card .task-label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 26px;
+    }
+
+    .time-display {
+      font-size: 36px;
+      font-weight: 300;
+      color: #1b2a4a;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+      margin-bottom: 4px;
+    }
+
+    .time-sublabel {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #888;
+      margin-bottom: 32px;
+    }
+
+    .completion-actions { display: flex; gap: 12px; justify-content: center; }
+
+    /* ── Quit overlay ────────────────────────────────────────── */
+    #quit-overlay { z-index: 930; }
+
+    .quit-card {
+      background: #ffffff;
+      border-radius: 6px;
+      padding: 38px 46px;
+      max-width: 380px;
+      width: 92%;
+      text-align: center;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+    }
+
+    .quit-card .warn-icon {
+      font-size: 34px;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .quit-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1b2a4a;
+      margin-bottom: 10px;
+    }
+
+    .quit-card p {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.65;
+      margin-bottom: 26px;
+    }
+
+    .quit-actions { display: flex; gap: 12px; justify-content: center; }
+
+    /* ── Reusable button styles ──────────────────────────────── */
+    .btn {
+      border-radius: 3px;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 10px 22px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      border: none;
+    }
+    .btn-navy {
+      background: #1b2a4a;
+      color: #fff;
+    }
+    .btn-navy:hover { background: #243352; }
+
+    .btn-green {
+      background: #2e6b30;
+      color: #fff;
+    }
+    .btn-green:hover { background: #255428; }
+
+    .btn-outline {
+      background: transparent;
+      color: #1b2a4a;
+      border: 1px solid #b0b0b0;
+    }
+    .btn-outline:hover { background: #f0f0f0; }
+
+    .btn-danger {
+      background: #c0272d;
+      color: #fff;
+    }
+    .btn-danger:hover { background: #a01e23; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Task bar ────────────────────────────────────────────── -->
+  <div id="task-bar">
+    <span class="lbl">Task</span>
+    <span id="task-id-badge">1 of 4</span>
+    <span id="task-title-display"></span>
+    <div class="timer-group">
+      <span class="timer-icon">⏱</span>
+      <span id="timer">00:00</span>
+    </div>
+    <div class="bar-sep"></div>
+    <button id="instructions-btn">Instructions</button>
+    <div class="bar-sep"></div>
+    <button id="quit-btn">Quit Task</button>
+  </div>
+
+  <!-- ── App iframe ──────────────────────────────────────────── -->
+  <iframe id="app-frame" src="" title="UNF Degree Planner"></iframe>
+
+  <!-- ── Task intro overlay ─────────────────────────────────── -->
+  <div id="intro-overlay" class="overlay visible">
+    <div class="intro-card">
+      <div class="intro-badge" id="intro-badge">Task 1 of 4</div>
+      <h2 id="intro-title"></h2>
+      <p class="scenario" id="intro-description" style="white-space:pre-line"></p>
+      <button class="hint-toggle" id="hint-toggle">Show hint</button>
+      <div class="hint-block" id="hint-block"></div>
+      <div class="intro-actions">
+        <button class="btn btn-outline" onclick="location.href='evaluator.html'">Back to Tasks</button>
+        <button class="btn btn-navy" id="begin-btn">Begin Task ›</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Completion overlay ─────────────────────────────────── -->
+  <div id="completion-overlay" class="overlay">
+    <div class="completion-card">
+      <div class="check-circle">&#10003;</div>
+      <h2>Task Complete!</h2>
+      <p class="task-label" id="complete-task-label"></p>
+      <div class="time-display" id="complete-time">00:00</div>
+      <div class="time-sublabel">Time Taken</div>
+      <div style="display:flex;gap:32px;justify-content:center;margin-bottom:10px;">
+        <div style="text-align:center;">
+          <div class="time-display" id="complete-clicks" style="font-size:28px;">0</div>
+          <div class="time-sublabel">Clicks</div>
+        </div>
+      </div>
+      <div class="completion-actions">
+        <button class="btn btn-outline" id="back-btn">Back to Tasks</button>
+        <button class="btn btn-green" id="next-btn" style="display:none">Next Task ›</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Quit confirmation overlay ─────────────────────────── -->
+  <div id="quit-overlay" class="overlay">
+    <div class="quit-card">
+      <span class="warn-icon">&#9888;&#65039;</span>
+      <h3>Quit this task?</h3>
+      <p>Your progress on this task will not be saved. You can restart it from the task list at any time.</p>
+      <div class="quit-actions">
+        <button class="btn btn-outline" id="cancel-quit-btn">Keep Going</button>
+        <button class="btn btn-danger" id="confirm-quit-btn">Quit Task</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import {
+      TASKS, getEvalState, setEvalState,
+      beginTask, completeTask, quitTask,
+      formatTime, getTaskById, getNextTask
+    } from './evaluator.js';
+
+    // ── Validate active task ──────────────────────────────────────────────────
+    const state = getEvalState();
+    const taskId = state.activeTaskId;
+
+    if (!taskId) {
+      location.href = 'evaluator.html';
+      throw new Error('No active task');
+    }
+
+    const task = getTaskById(taskId);
+    if (!task) {
+      location.href = 'evaluator.html';
+      throw new Error('Unknown task id');
+    }
+
+    const nextTask = getNextTask(taskId);
+
+    // ── Populate task bar ─────────────────────────────────────────────────────
+    document.getElementById('task-id-badge').textContent =
+      `Task ${taskId} of ${TASKS.length}`;
+    document.getElementById('task-title-display').textContent = task.title;
+
+    // ── Populate intro overlay ────────────────────────────────────────────────
+    document.getElementById('intro-badge').textContent =
+      `Task ${taskId} of ${TASKS.length}`;
+    document.getElementById('intro-title').textContent = task.title;
+    document.getElementById('intro-description').textContent = task.description;
+    document.getElementById('hint-block').textContent = task.hint;
+
+    // Hint toggle
+    const hintToggle = document.getElementById('hint-toggle');
+    const hintBlock  = document.getElementById('hint-block');
+    hintToggle.addEventListener('click', () => {
+      const open = hintBlock.classList.toggle('visible');
+      hintToggle.textContent = open ? 'Hide hint' : 'Show hint';
+    });
+
+    // ── Wipe all greyed calendar filters before every task ───────────────────
+    // Done here in the shell (not only in task.setup) to guarantee it runs
+    // even if the evaluator.js module is cached by the browser.
+    for (let _i = 0; _i < 24; _i++) {
+      localStorage.setItem(`cal_${_i}_greyedCols`, '[]');
+      localStorage.setItem(`cal_${_i}_greyedRows`, '[]');
+    }
+
+    // ── Run task setup (if defined) then load iframe ──────────────────────────
+    if (typeof task.setup === 'function') task.setup();
+    const iframe = document.getElementById('app-frame');
+    iframe.src = task.startPage;
+
+    // ── Click tracking ────────────────────────────────────────────────────────
+    let clickCount = 0;
+
+    function onLeftClick() {
+      if (!startTimestamp || taskComplete) return;
+      clickCount++;
+    }
+
+    // Count clicks on the shell itself (task bar, overlays)
+    document.addEventListener('click', onLeftClick);
+
+    // Count clicks inside the iframe; re-attach after every navigation.
+    // Also reset the calendar's in-memory greyed-filter state on the FIRST load
+    // so any gc/gr populated before setup() ran gets cleared from live memory.
+    let firstLoad = true;
+    function attachIframeClickListener() {
+      try {
+        iframe.contentDocument.addEventListener('click', onLeftClick);
+      } catch { /* cross-origin guard, won't happen on localhost */ }
+
+      if (firstLoad) {
+        firstLoad = false;
+        try {
+          const iwin = iframe.contentWindow;
+          // Reset the calendar's in-memory day/row filter sets and re-render
+          if (iwin.gc instanceof Set && iwin.gr instanceof Set) {
+            iwin.gc.clear();
+            iwin.gr.clear();
+            const si = parseInt(localStorage.getItem('cal_semIdx') || '0');
+            iwin.localStorage.setItem(`cal_${si}_greyedCols`, '[]');
+            iwin.localStorage.setItem(`cal_${si}_greyedRows`, '[]');
+            if (typeof iwin.render === 'function') iwin.render();
+          }
+        } catch { /* ignore if calendar page doesn't expose these globals */ }
+      }
+    }
+    iframe.addEventListener('load', attachIframeClickListener);
+
+    // ── Timer state ───────────────────────────────────────────────────────────
+    let timerInterval = null;
+    let pollInterval  = null;
+    let taskComplete  = false;
+    let startTimestamp = null;
+
+    function startTimer() {
+      const timerEl = document.getElementById('timer');
+      timerInterval = setInterval(() => {
+        if (taskComplete || !startTimestamp) return;
+        timerEl.textContent = formatTime(Date.now() - startTimestamp);
+      }, 500);
+    }
+
+    function startPolling() {
+      pollInterval = setInterval(() => {
+        if (taskComplete) return;
+        let iframeSrc = '';
+        try { iframeSrc = iframe.contentWindow.location.href; } catch { return; }
+
+        if (task.check(iframeSrc)) {
+          taskComplete = true;
+          clearInterval(timerInterval);
+          clearInterval(pollInterval);
+
+          const elapsed = Date.now() - startTimestamp;
+          completeTask(taskId, elapsed, clickCount);
+          showCompletion(elapsed, clickCount);
+        }
+      }, 300);
+    }
+
+    // ── Begin / Resume button ─────────────────────────────────────────────────
+    const beginBtn = document.getElementById('begin-btn');
+    beginBtn.addEventListener('click', () => {
+      if (startTimestamp) {
+        // Task already running — just close the overlay
+        document.getElementById('intro-overlay').classList.remove('visible');
+        return;
+      }
+      // First click — start the timer and polling
+      beginTask(taskId);
+      startTimestamp = getEvalState().taskStartTime;
+      document.getElementById('intro-overlay').classList.remove('visible');
+      startTimer();
+      startPolling();
+    });
+
+    // ── Instructions button ───────────────────────────────────────────────────
+    document.getElementById('instructions-btn').addEventListener('click', () => {
+      // Swap label so it's clear clicking again just resumes
+      beginBtn.textContent = startTimestamp ? 'Resume Task ›' : 'Begin Task ›';
+      document.getElementById('intro-overlay').classList.add('visible');
+    });
+
+    const SURVEY_URL = 'https://forms.gle/2HBbku1FBhLhHU1j9';
+
+    // ── Completion overlay ────────────────────────────────────────────────────
+    function showCompletion(elapsed, clicks) {
+      document.getElementById('complete-task-label').textContent =
+        `Task ${taskId}: ${task.title}`;
+      document.getElementById('complete-time').textContent = formatTime(elapsed);
+      document.getElementById('complete-clicks').textContent = clicks;
+
+      const nextBtn = document.getElementById('next-btn');
+      nextBtn.style.display = 'inline-block';
+      if (nextTask) {
+        nextBtn.textContent = `Next: Task ${nextTask.id} \u203a`;
+      } else {
+        nextBtn.textContent = 'Take Survey \u203a';
+        nextBtn.classList.remove('btn-green');
+        nextBtn.classList.add('btn-navy');
+      }
+
+      document.getElementById('completion-overlay').classList.add('visible');
+    }
+
+    document.getElementById('back-btn').addEventListener('click', () => {
+      location.href = 'evaluator.html';
+    });
+
+    document.getElementById('next-btn').addEventListener('click', () => {
+      if (!nextTask) {
+        window.open(SURVEY_URL, '_blank');
+        return;
+      }
+      const s = getEvalState();
+      s.activeTaskId  = nextTask.id;
+      s.taskStartTime = null;
+      setEvalState(s);
+      location.reload();
+    });
+
+    // ── Quit flow ─────────────────────────────────────────────────────────────
+    document.getElementById('quit-btn').addEventListener('click', () => {
+      document.getElementById('quit-overlay').classList.add('visible');
+    });
+
+    document.getElementById('cancel-quit-btn').addEventListener('click', () => {
+      document.getElementById('quit-overlay').classList.remove('visible');
+    });
+
+    document.getElementById('confirm-quit-btn').addEventListener('click', () => {
+      clearInterval(timerInterval);
+      clearInterval(pollInterval);
+      quitTask();
+      location.href = 'evaluator.html';
+    });
+  </script>
+
+</body>
+</html>

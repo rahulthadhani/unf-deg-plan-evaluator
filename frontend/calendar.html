@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Class Schedule - UNF Degree Planner</title>
+  <link rel="stylesheet" href="styles/shared.css">
+  <style>
+    body{display:flex;flex-direction:column;height:100vh;}
+    .panes{display:flex;flex:1;overflow:hidden;}
+    .left-pane{width:180px;flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;border-right:1px solid var(--border);background:var(--white);}
+    .left-pane-header{background:var(--navy);color:var(--white);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;padding:9px 12px;border-bottom:2px solid var(--gold);flex-shrink:0;}
+    .online-course-item{padding:9px 10px;border:1px solid var(--border);border-left:4px solid var(--gold);margin:7px 8px 0;background:#fffdf6;cursor:pointer;transition:background .12s;}
+    .online-course-item:hover{background:#fff6dd;}
+    .online-name{font-size:13px;font-weight:700;color:var(--navy);line-height:1.3;}
+    .online-meta{font-size:12px;color:var(--text-muted);margin-top:2px;line-height:1.3;}
+    .online-empty{padding:14px 12px;font-size:12px;color:var(--text-muted);font-style:italic;text-align:center;}
+    .right-pane{flex:1;display:flex;flex-direction:column;padding:14px 18px;overflow:hidden;background:var(--bg);}
+    .cal-nav{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:10px;flex-shrink:0;}
+    .cal-nav-center{display:flex;align-items:center;gap:14px;}
+    .cal-nav button{background:var(--navy);border:none;border-bottom:3px solid var(--gold-dark);color:var(--white);padding:7px 16px;cursor:pointer;font-size:16px;font-family:var(--font);font-weight:700;transition:background .12s;}
+    .cal-nav button:hover{background:var(--teal);border-bottom-color:var(--teal-mid);}
+    .cal-nav button:disabled{background:#bbb;border-bottom-color:#999;cursor:default;}
+    .add-class-btn{font-size:14px!important;padding:7px 18px!important;letter-spacing:0.02em;}
+    .sem-label{font-size:16px;font-weight:700;min-width:220px;text-align:center;color:var(--navy);}
+    .cal-scroll{flex:1;overflow:hidden;border:1px solid var(--border);background:var(--white);}
+    .cal-slot-overlay{cursor:pointer;}
+    .cal-slot-overlay.drag-preview{background:rgba(198,40,40,0.13)!important;}
+    .cal-slot-overlay.drag-preview-unblock{background:rgba(46,107,48,0.13)!important;}
+    .cal-day-header,.cal-time{user-select:none;}
+    .cal-day-header.range-anchor,.cal-time.range-anchor{
+      box-shadow:inset 0 0 0 2px #f5a800;
+      background:#2a3c61 !important;
+      color:#fff !important;
+    }
+    .cal-day-header.range-preview{
+      background:#3b527e !important;
+      color:#fff !important;
+    }
+    .cal-time.range-preview{
+      background:#dce8f5 !important;
+      color:var(--navy) !important;
+    }
+    .cal-qcell.shift-range{
+      background:#dce8f5 !important;
+    }
+    .cal-qcell.shift-anchor{
+      background:#c9def4 !important;
+    }
+    .cal-grid.shift-mode .cal-qcell:not(.greyed){
+      background:var(--white) !important;
+    }
+    .cal-grid.shift-mode .cal-qcell.shift-range{
+      background:#dce8f5 !important;
+    }
+    .cal-grid.shift-mode .cal-qcell.shift-anchor{
+      background:#c9def4 !important;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="site-header">
+    <img src="assets/UNF-logo-white.png" alt="University of North Florida" class="unf-logo">
+    <nav class="header-nav">
+      <button onclick="location.href='landing-page.html'">Home</button>
+      <button class="active" onclick="location.href='calendar.html'">Class Schedule</button>
+      <button onclick="location.href='degree-planner.html'">Degree Plan</button>
+      <button onclick="location.href='catalog.html'">Course Catalog</button>
+    </nav>
+  </div>
+  <div class="page-title-bar">
+    <h1>Class Schedule</h1>
+    <div class="subtitle">Click/drag day or time headers to block &middot; Click, drag, or shift-click cells to block time slots &middot; Use Add Class to enroll</div>
+  </div>
+  <div class="section-divider"></div>
+  <div class="panes">
+    <div class="left-pane">
+      <div class="left-pane-header">Online</div>
+      <div id="online-list"></div>
+    </div>
+    <div class="right-pane">
+      <div class="cal-nav">
+        <div style="width:120px;"></div>
+        <div class="cal-nav-center">
+          <button id="prev-btn">&#8592;</button>
+          <span class="sem-label" id="week-label"></span>
+          <button id="next-btn">&#8594;</button>
+        </div>
+        <button class="add-class-btn" onclick="location.href='degree-planner.html'">+ Add Class</button>
+      </div>
+      <div class="cal-scroll"><div class="cal-grid" id="cal-grid"></div></div>
+    </div>
+  </div>
+<script>
+  const API='http://localhost:8000';
+  const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],SH=6,NH=16;
+  const COLOR_POOL=[
+    {bg:'#e8f1ff',border:'#4f84d6',text:'#1f3f75'},
+    {bg:'#e9f8ef',border:'#3f8f5f',text:'#1f5f3a'},
+    {bg:'#fff3e6',border:'#d9882e',text:'#7a4a14'},
+    {bg:'#f3ecff',border:'#7b66cc',text:'#4a3b8f'},
+    {bg:'#ffecef',border:'#d85b73',text:'#8f2442'},
+    {bg:'#e8f9f8',border:'#249a97',text:'#126664'},
+  ];
+
+  const SEMS=[];
+  for(let y=2024;y<=2030;y++){SEMS.push({name:'Spring',year:y});SEMS.push({name:'Summer',year:y});SEMS.push({name:'Fall',year:y});}
+
+  function cs(){
+    const n=new Date(),mo=n.getMonth(),yr=n.getFullYear();
+    const s=mo<=4?'Spring':mo<=7?'Summer':'Fall';
+    const i=SEMS.findIndex(x=>x.name===s&&x.year===yr);
+    return i>=0?i:0;
+  }
+
+  let si=parseInt(localStorage.getItem('cal_semIdx')??cs());
+  const k=n=>'cal_'+si+'_'+n;
+
+  // Header drag state (day cols / time rows)
+  const dragState={type:null,action:null,active:false,ignoreClick:false};
+  const shiftState={held:false,hoverDay:null,hoverRow:null};
+  const shiftAnchor={mode:null,day:null,row:null};
+
+  // Cell drag state — for dragging within a single column across hour slots
+  const cellDrag={
+    active:false,
+    col:null,       // which day column
+    action:null,    // true=block, false=unblock
+    startRow:null,  // hour row drag started at
+    endRow:null,    // current hover row
+    anchored:false, // shift-click anchor set?
+    anchorCol:null,
+    anchorRow:null,
+  };
+
+  const courseNameCache={};
+
+  let gc=new Set(),gr=new Set(),gcells=new Set();
+  function load(){
+    gc=new Set(JSON.parse(localStorage.getItem(k('greyedCols'))||'[]'));
+    gr=new Set(JSON.parse(localStorage.getItem(k('greyedRows'))||'[]'));
+    gcells=new Set(JSON.parse(localStorage.getItem(k('greyedCells'))||'[]'));
+  }
+  load();
+
+  function save(){
+    localStorage.setItem('cal_semIdx',si);
+    localStorage.setItem(k('greyedCols'),JSON.stringify([...gc]));
+    localStorage.setItem(k('greyedRows'),JSON.stringify([...gr]));
+    localStorage.setItem(k('greyedCells'),JSON.stringify([...gcells]));
+  }
+  function cellKey(col,row){return col+':'+row;}
+  function isCellBlocked(col,row){return gc.has(col)||gr.has(row)||gcells.has(cellKey(col,row));}
+  function setCellBlocked(col,row,blocked){
+    const ck=cellKey(col,row);
+    if(blocked)gcells.add(ck); else gcells.delete(ck);
+  }
+  function setDayBlocked(col,blocked){ if(blocked)gc.add(col); else gc.delete(col); }
+  function setRowBlocked(row,blocked){ if(blocked)gr.add(row); else gr.delete(row); }
+
+  function applyDayRange(a,b,blocked){
+    const s=Math.min(a,b),e=Math.max(a,b);
+    for(let col=s;col<=e;col++) setDayBlocked(col,blocked);
+    save(); render();
+  }
+  function applyRowRange(a,b,blocked){
+    const s=Math.min(a,b),e=Math.max(a,b);
+    for(let row=s;row<=e;row++) setRowBlocked(row,blocked);
+    save(); render();
+  }
+
+  // Apply cell block across a row range for one column
+  function applyCellRange(col,rowA,rowB,blocked){
+    if(col===null||rowA===null||rowB===null) return;
+    const s=Math.min(rowA,rowB),e=Math.max(rowA,rowB);
+    for(let row=s;row<=e;row++){
+      if(!gc.has(col)&&!gr.has(row)) setCellBlocked(col,row,blocked);
+    }
+    save(); render();
+  }
+
+  // ── Shift-preview for header ranges ──────────────────────────────────────
+  function clearShiftPreviewClasses(){
+    document.querySelectorAll('.cal-day-header.range-anchor,.cal-day-header.range-preview,.cal-time.range-anchor,.cal-time.range-preview')
+      .forEach(el=>el.classList.remove('range-anchor','range-preview'));
+    document.querySelectorAll('.cal-qcell.shift-range,.cal-qcell.shift-anchor')
+      .forEach(el=>el.classList.remove('shift-range','shift-anchor'));
+  }
+  function markColCells(col,cls){
+    document.querySelectorAll('.cal-qcell[data-col="'+col+'"]:not(.greyed)').forEach(el=>el.classList.add(cls));
+  }
+  function markRowCells(row,cls){
+    document.querySelectorAll('.cal-qcell[data-row="'+row+'"]:not(.greyed)').forEach(el=>el.classList.add(cls));
+  }
+  function paintShiftPreview(){
+    clearShiftPreviewClasses();
+    if(!shiftState.held) return;
+    if(shiftAnchor.mode==='day' && shiftAnchor.day!==null){
+      const anchor=document.querySelector('.cal-day-header[data-col="'+shiftAnchor.day+'"]');
+      if(anchor) anchor.classList.add('range-anchor');
+      markColCells(shiftAnchor.day,'shift-anchor');
+      if(shiftState.hoverDay!==null){
+        const s=Math.min(shiftAnchor.day,shiftState.hoverDay),e=Math.max(shiftAnchor.day,shiftState.hoverDay);
+        for(let col=s;col<=e;col++){
+          const el=document.querySelector('.cal-day-header[data-col="'+col+'"]');
+          if(el && col!==shiftAnchor.day) el.classList.add('range-preview');
+          if(col!==shiftAnchor.day) markColCells(col,'shift-range');
+        }
+      }
+    }
+    if(shiftAnchor.mode==='row' && shiftAnchor.row!==null){
+      const anchor=document.querySelector('.cal-time[data-row="'+shiftAnchor.row+'"]');
+      if(anchor) anchor.classList.add('range-anchor');
+      markRowCells(shiftAnchor.row,'shift-anchor');
+      if(shiftState.hoverRow!==null){
+        const s=Math.min(shiftAnchor.row,shiftState.hoverRow),e=Math.max(shiftAnchor.row,shiftState.hoverRow);
+        for(let row=s;row<=e;row++){
+          const el=document.querySelector('.cal-time[data-row="'+row+'"]');
+          if(el && row!==shiftAnchor.row) el.classList.add('range-preview');
+          if(row!==shiftAnchor.row) markRowCells(row,'shift-range');
+        }
+      }
+    }
+  }
+
+  // ── Cell drag preview ─────────────────────────────────────────────────────
+  function paintCellDragPreview(){
+    document.querySelectorAll('.cal-slot-overlay.drag-preview,.cal-slot-overlay.drag-preview-unblock')
+      .forEach(el=>el.classList.remove('drag-preview','drag-preview-unblock'));
+    if(!cellDrag.active || cellDrag.col===null || cellDrag.startRow===null || cellDrag.endRow===null) return;
+    const s=Math.min(cellDrag.startRow,cellDrag.endRow),e=Math.max(cellDrag.startRow,cellDrag.endRow);
+    const cls=cellDrag.action?'drag-preview':'drag-preview-unblock';
+    for(let row=s;row<=e;row++){
+      const ov=document.querySelector('.cal-slot-overlay[data-col="'+cellDrag.col+'"][data-row="'+row+'"]');
+      if(ov) ov.classList.add(cls);
+    }
+  }
+
+  function setShiftMode(on){
+    const grid=document.getElementById('cal-grid');
+    if(!grid) return;
+    grid.classList.toggle('shift-mode', !!on);
+  }
+
+  // ── Header interactions ───────────────────────────────────────────────────
+  function onDayPick(col,ev){
+    if(ev.shiftKey){
+      if(shiftAnchor.mode!=='day' || shiftAnchor.day===null){
+        shiftAnchor.mode='day'; shiftAnchor.day=col; shiftAnchor.row=null;
+        shiftState.hoverDay=col; shiftState.hoverRow=null;
+        paintShiftPreview(); return;
+      }
+      const blocked=!gc.has(col);
+      applyDayRange(shiftAnchor.day,col,blocked);
+      shiftAnchor.day=col; shiftState.hoverDay=col;
+      paintShiftPreview(); return;
+    }
+    setDayBlocked(col,!gc.has(col)); save(); render();
+  }
+  function onRowPick(row,ev){
+    if(ev.shiftKey){
+      if(shiftAnchor.mode!=='row' || shiftAnchor.row===null){
+        shiftAnchor.mode='row'; shiftAnchor.row=row; shiftAnchor.day=null;
+        shiftState.hoverRow=row; shiftState.hoverDay=null;
+        paintShiftPreview(); return;
+      }
+      const blocked=!gr.has(row);
+      applyRowRange(shiftAnchor.row,row,blocked);
+      shiftAnchor.row=row; shiftState.hoverRow=row;
+      paintShiftPreview(); return;
+    }
+    setRowBlocked(row,!gr.has(row)); save(); render();
+  }
+  function startDayDrag(col){ dragState.type='day';dragState.active=true;dragState.action=!gc.has(col);setDayBlocked(col,dragState.action);save();render(); }
+  function startRowDrag(row){ dragState.type='row';dragState.active=true;dragState.action=!gr.has(row);setRowBlocked(row,dragState.action);save();render(); }
+  function continueDayDrag(col){ if(!(dragState.active&&dragState.type==='day'))return; setDayBlocked(col,dragState.action);save();render(); }
+  function continueRowDrag(row){ if(!(dragState.active&&dragState.type==='row'))return; setRowBlocked(row,dragState.action);save();render(); }
+
+  // ── Cell interactions ─────────────────────────────────────────────────────
+  function onCellMouseDown(col,row,ev){
+    if(ev.button!==0) return;
+    if(gc.has(col)||gr.has(row)) return; // header-blocked col/row — ignore
+    ev.preventDefault();
+
+    if(ev.shiftKey){
+      // Shift+click: anchor or apply range
+      if(!cellDrag.anchored || cellDrag.anchorCol!==col){
+        // Set anchor
+        cellDrag.anchored=true;
+        cellDrag.anchorCol=col;
+        cellDrag.anchorRow=row;
+        // Determine action based on current cell state
+        cellDrag.action=!gcells.has(cellKey(col,row));
+        // Block the anchor cell immediately
+        setCellBlocked(col,row,cellDrag.action);
+        save(); render(); return;
+      }
+      // Same column — apply range from anchor to here
+      applyCellRange(col,cellDrag.anchorRow,row,cellDrag.action);
+      cellDrag.anchored=false;
+      return;
+    }
+
+    // Normal click/drag start
+    cellDrag.anchored=false;
+    cellDrag.active=true;
+    cellDrag.col=col;
+    cellDrag.startRow=row;
+    cellDrag.endRow=row;
+    cellDrag.action=!gcells.has(cellKey(col,row));
+    paintCellDragPreview();
+  }
+
+  function onCellMouseEnter(col,row){
+    if(!cellDrag.active) return;
+    if(col!==cellDrag.col) return; // only same column
+    if(gc.has(col)||gr.has(row)) return;
+    cellDrag.endRow=row;
+    paintCellDragPreview();
+  }
+
+  function onCellMouseUp(){
+    if(!cellDrag.active) return;
+    applyCellRange(cellDrag.col,cellDrag.startRow,cellDrag.endRow,cellDrag.action);
+    cellDrag.active=false;
+    cellDrag.col=null; cellDrag.startRow=null; cellDrag.endRow=null;
+  }
+
+  // ── Courses / colors ──────────────────────────────────────────────────────
+  function getCourses(){ return JSON.parse(localStorage.getItem(k('courses'))||'[]'); }
+
+  function getCourseColors(courses){
+    let map={};
+    try{ map=JSON.parse(localStorage.getItem(k('courseColors'))||'{}')||{}; }catch{ map={}; }
+    if(Array.isArray(map)||typeof map!=='object') map={};
+    const validCodes=new Set(courses.map(c=>c.code));
+    Object.keys(map).forEach(code=>{
+      const idx=map[code];
+      if(!validCodes.has(code)||!Number.isInteger(idx)||idx<0||idx>=COLOR_POOL.length) delete map[code];
+    });
+    const used=new Set(Object.values(map));
+    for(let i=0;i<courses.length;i++){
+      const code=courses[i].code;
+      if(map[code]!==undefined) continue;
+      let idx=-1;
+      for(let j=0;j<COLOR_POOL.length;j++){ if(!used.has(j)){ idx=j; break; } }
+      if(idx<0) idx=i%COLOR_POOL.length;
+      map[code]=idx; used.add(idx);
+    }
+    localStorage.setItem(k('courseColors'),JSON.stringify(map));
+    return map;
+  }
+
+  function booked(courses,colorMap){
+    const r=[];
+    for(const c of courses){
+      const colorIdx=Number.isInteger(colorMap[c.code])?colorMap[c.code]:0;
+      const clr=COLOR_POOL[colorIdx]||COLOR_POOL[0];
+      if(!c.blocks||!c.blocks.length) continue;
+      const lbl=String(c.label||'');
+      const mt=lbl.match(/\(([^)]+)\)/);
+      const meta=mt?(c.code+' ('+mt[1]+')'):c.code;
+      for(const b of c.blocks){
+        if(b.startQ!==undefined) r.push({code:c.code,name:courseNameCache[c.code]||c.code,meta,href:c.href||'unavailable.html',day:b.day,startQ:b.startQ,endQ:b.endQ,color:clr});
+      }
+    }
+    return r;
+  }
+
+  function hl(h){if(h<12)return h+':00 AM';if(h===12)return'12:00 PM';return(h-12)+':00 PM';}
+
+  async function getCourseName(code){
+    if(!code) return '';
+    if(courseNameCache[code]) return courseNameCache[code];
+    try{
+      const r=await fetch(API+'/api/courses/'+code.replace(/\s+/g,'-'));
+      if(r.ok){ const d=await r.json(); courseNameCache[code]=d.name||code; return courseNameCache[code]; }
+    }catch{}
+    courseNameCache[code]=code; return code;
+  }
+
+  async function renderOnline(courses,colorMap){
+    const list=document.getElementById('online-list');
+    const o=courses.filter(c=>!c.blocks||!c.blocks.length);
+    list.innerHTML='';
+    if(!o.length){list.innerHTML='<div class="online-empty">No online courses</div>';return;}
+    for(const c of o){
+      const name=await getCourseName(c.code);
+      const el=document.createElement('div');
+      el.className='online-course-item';
+      el.innerHTML='<div class="online-name">'+name+'</div><div class="online-meta">'+(c.code||'')+' (Online)</div>';
+      el.title=c.label||'';
+      const clr=COLOR_POOL[colorMap[c.code]??0];
+      el.style.borderLeft='4px solid '+clr.border;
+      el.onclick=()=>location.href=c.href||'unavailable.html';
+      list.appendChild(el);
+    }
+  }
+
+  // ── Fit-to-viewport: compute row height so no scrolling needed ────────────
+  function computeRowHeight(){
+    const scroll=document.querySelector('.cal-scroll');
+    if(!scroll) return null;
+    // Total rows in grid: 1 header + NH*4 quarter-rows
+    // shared.css typically sets a fixed row height; we override via CSS var
+    const availH=scroll.clientHeight;
+    const headerH=36; // matches the calendar header row height more closely
+    const dataH=availH-headerH;
+    const totalQRows=NH*4; // 64 quarter-rows
+    const qBase=Math.max(6, Math.floor(dataH/totalQRows));
+    const remainder=Math.max(0, dataH - (qBase * totalQRows));
+    return { headerH, qBase, remainder, totalQRows };
+  }
+
+  async function render(){
+    const courses=getCourses();
+    await Promise.all(courses.map(c=>getCourseName(c.code)));
+    const colorMap=getCourseColors(courses);
+    const bk=booked(courses,colorMap);
+
+    const grid=document.getElementById('cal-grid');
+    document.getElementById('week-label').textContent=SEMS[si].name+' '+SEMS[si].year;
+    grid.innerHTML='';
+
+    // Compute row height to fill viewport without scrolling
+    const fit=computeRowHeight();
+    if(fit){
+      // Build explicit grid-template-rows: header + quarter-rows that exactly fill the container
+      const rows=['minmax('+fit.headerH+'px,'+fit.headerH+'px)'];
+      for(let i=0;i<fit.totalQRows;i++) rows.push((fit.qBase + (i < fit.remainder ? 1 : 0))+'px');
+      grid.style.gridTemplateRows=rows.join(' ');
+    }
+
+    const corner=document.createElement('div');
+    corner.className='cal-corner';
+    grid.appendChild(corner);
+
+    DAYS.forEach((day,col)=>{
+      const hdr=document.createElement('div');
+      hdr.className='cal-day-header'+(gc.has(col)?' greyed':'');
+      hdr.style.gridColumn=col+2;
+      hdr.style.gridRow='1';
+      hdr.dataset.col=col;
+      hdr.innerHTML=day.slice(0,3).toUpperCase()+'<span class="hint">'+(gc.has(col)?'↺ Unblock':'✕ Block')+'</span>';
+      hdr.addEventListener('click',ev=>{if(dragState.ignoreClick){dragState.ignoreClick=false;return;} onDayPick(col,ev);});
+      hdr.addEventListener('mousedown',ev=>{
+        if(ev.button!==0)return; if(ev.shiftKey)return;
+        ev.preventDefault(); dragState.ignoreClick=true; startDayDrag(col);
+      });
+      hdr.addEventListener('mouseenter',ev=>{
+        if(ev.shiftKey){
+          if(shiftState.hoverDay!==col||shiftState.hoverRow!==null){shiftState.hoverDay=col;shiftState.hoverRow=null;paintShiftPreview();}
+          return;
+        }
+        continueDayDrag(col);
+      });
+      grid.appendChild(hdr);
+    });
+
+    for(let hi=0;hi<NH;hi++){
+      const h=SH+hi,qs=hi*4,grs=qs+2;
+      const tc=document.createElement('div');
+      tc.className='cal-time'+(gr.has(hi)?' greyed':'');
+      tc.style.gridColumn='1';
+      tc.style.gridRow=grs+' / span 4';
+      tc.dataset.row=hi;
+      tc.textContent=hl(h);
+      tc.addEventListener('click',ev=>{if(dragState.ignoreClick){dragState.ignoreClick=false;return;} onRowPick(hi,ev);});
+      tc.addEventListener('mousedown',ev=>{
+        if(ev.button!==0)return; if(ev.shiftKey)return;
+        ev.preventDefault(); dragState.ignoreClick=true; startRowDrag(hi);
+      });
+      tc.addEventListener('mouseenter',ev=>{
+        if(ev.shiftKey){
+          if(shiftState.hoverRow!==hi||shiftState.hoverDay!==null){shiftState.hoverRow=hi;shiftState.hoverDay=null;paintShiftPreview();}
+          return;
+        }
+        continueRowDrag(hi);
+      });
+      grid.appendChild(tc);
+
+      for(let q=0;q<4;q++){
+        for(let d=0;d<7;d++){
+          const cell=document.createElement('div');
+          cell.className='cal-qcell'+(isCellBlocked(d,hi)?' greyed':'');
+          cell.style.gridColumn=d+2;
+          cell.style.gridRow=grs+q;
+          cell.dataset.col=d; cell.dataset.row=hi; cell.dataset.q=q;
+          if(q===3) cell.style.borderBottom='1px solid #e8e8e8';
+          grid.appendChild(cell);
+        }
+      }
+
+      // One clickable/draggable overlay per (col, hour-row)
+      for(let d=0;d<7;d++){
+        const ov=document.createElement('div');
+        ov.className='cal-slot-overlay'+(isCellBlocked(d,hi)?' is-blocked':'');
+        ov.style.gridColumn=d+2;
+        ov.style.gridRow=grs+' / span 4';
+        ov.style.zIndex='2';
+        ov.dataset.col=d;
+        ov.dataset.row=hi;
+        const _d=d,_hi=hi;
+        ov.addEventListener('mousedown',ev=>onCellMouseDown(_d,_hi,ev));
+        ov.addEventListener('mouseenter',()=>onCellMouseEnter(_d,_hi));
+        ov.addEventListener('mouseup',()=>onCellMouseUp());
+        // Hover highlight (only when not in cell-drag and cell not blocked by header)
+        if(!gc.has(d)&&!gr.has(hi)){
+          ov.style.transition='background 0.1s';
+          ov.addEventListener('mouseover',()=>{ if(!cellDrag.active) ov.style.background='rgba(0,91,127,0.07)'; });
+          ov.addEventListener('mouseout',()=>{ if(!cellDrag.active) ov.style.background=''; });
+        }
+        grid.appendChild(ov);
+      }
+    }
+
+    bk.forEach(({code,name,meta,href,day,startQ,endQ,color})=>{
+      if(gc.has(day)||gr.has(Math.floor(startQ/4)))return;
+      const el=document.createElement('div');
+      el.className='cal-booked';
+      el.style.cssText='grid-column:'+(day+2)+';grid-row:'+(startQ+2)+'/span '+(endQ-startQ+1)+
+        ';background:'+color.bg+';color:'+color.text+';border:1px solid '+color.border+
+        ';border-left:4px solid '+color.border+';display:flex;flex-direction:column;justify-content:center;'+
+        'gap:2px;z-index:3;position:relative;overflow:hidden;';
+      el.innerHTML='<div style="font-size:12px;font-weight:700;line-height:1.2;color:#111;">'+name+'</div>'+
+        '<div style="font-size:11px;line-height:1.2;color:#111;">'+meta+'</div>';
+      el.onclick=()=>location.href=href;
+      grid.appendChild(el);
+    });
+
+    document.getElementById('prev-btn').disabled=si===0;
+    document.getElementById('next-btn').disabled=si===SEMS.length-1;
+    renderOnline(courses,colorMap);
+    setShiftMode(shiftState.held);
+    paintShiftPreview();
+  }
+
+  document.getElementById('prev-btn').onclick=()=>{if(si>0){si--;load();save();render();}};
+  document.getElementById('next-btn').onclick=()=>{if(si<SEMS.length-1){si++;load();save();render();}};
+
+  document.addEventListener('mouseup',()=>{
+    dragState.active=false;dragState.type=null;dragState.action=null;dragState.ignoreClick=false;
+    onCellMouseUp();
+  });
+
+  document.addEventListener('keydown',ev=>{
+    if(ev.key==='Shift'){
+      dragState.active=false;dragState.type=null;dragState.action=null;dragState.ignoreClick=false;
+      if(!shiftState.held){shiftAnchor.mode=null;shiftAnchor.day=null;shiftAnchor.row=null;}
+      shiftState.held=true;shiftState.hoverDay=null;shiftState.hoverRow=null;
+      setShiftMode(true);paintShiftPreview();
+    }
+  });
+  document.addEventListener('keyup',ev=>{
+    if(ev.key==='Shift'){
+      shiftState.held=false;shiftState.hoverDay=null;shiftState.hoverRow=null;
+      setShiftMode(false);paintShiftPreview();
+    }
+  });
+
+  // Re-fit on window resize
+  window.addEventListener('resize',()=>render());
+
+  render();
+</script>
+</body>
+</html>

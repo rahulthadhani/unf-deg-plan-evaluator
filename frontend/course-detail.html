@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Detail - UNF</title>
+  <link rel="stylesheet" href="styles/shared.css">
+  <style>
+    body{display:flex;flex-direction:column;min-height:100vh;}
+    .content{display:flex;gap:20px;padding:20px 28px;align-items:flex-start;flex:1;background:var(--bg);}
+    .info-panel{width:320px;flex-shrink:0;}
+    .info-card{background:var(--white);border:1px solid var(--border);box-shadow:0 1px 2px rgba(0,0,0,.05);}
+    .info-card .card-header{display:flex;flex-direction:column;gap:2px;}
+    .info-card .crn-sub{font-size:11px;font-weight:400;opacity:.7;letter-spacing:.04em;}
+    .info-body{padding:16px;}
+    .info-body p{font-size:13px;color:var(--text);line-height:1.75;}
+    .prereq-section{margin-top:18px;padding-top:14px;border-top:1px solid var(--border);}
+    .section-label{font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;}
+    #prereq-chart{position:relative;}
+    .sections-panel{flex:1;}
+    .sections-header{background:var(--navy);color:var(--white);padding:9px 14px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid var(--gold);display:flex;align-items:center;justify-content:space-between;}
+    .sections-body{background:var(--white);border:1px solid var(--border);border-top:none;padding:12px;display:flex;flex-direction:column;gap:7px;}
+    .empty-note{font-size:13px;color:var(--text-muted);padding:10px 6px;}
+  </style>
+</head>
+<body>
+  <div class="site-header">
+    <img src="assets/UNF-logo-white.png" alt="University of North Florida" class="unf-logo">
+    <nav class="header-nav">
+      <button onclick="location.href='landing-page.html'">Home</button>
+      <button onclick="location.href='calendar.html'">Class Schedule</button>
+      <button onclick="location.href='degree-planner.html'">Degree Plan</button>
+      <button onclick="location.href='catalog.html'">Course Catalog</button>
+    </nav>
+  </div>
+  <div class="page-title-bar">
+    <h1 id="course-title">Course</h1>
+    <div class="subtitle" id="course-sub">Course detail</div>
+  </div>
+  <div class="section-divider"></div>
+  <div class="content">
+    <div class="info-panel">
+      <div class="info-card">
+        <div class="card-header"><span class="crn-sub" id="info-sub">Course</span><span id="info-title">Course Detail</span></div>
+        <div class="info-body">
+          <p id="course-desc">Loading course information...</p>
+          <div class="prereq-section"><div class="section-label">Prerequisites and Unlocks</div><div id="prereq-chart"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="sections-panel">
+      <div class="sections-header">
+        <span>Available Sections - <span id="sem-disp"></span></span>
+        <button class="btn-primary" id="action-btn" style="font-size:12px;padding:6px 16px;">Add Course</button>
+      </div>
+      <div class="sections-body" id="sections-list"><div class="loading">Loading sections...</div></div>
+    </div>
+  </div>
+  <div class="site-footer">© University of North Florida &nbsp;·&nbsp; 1 UNF Drive, Jacksonville, FL 32224 &nbsp;·&nbsp; (904) 620-1000</div>
+  <script src="scripts/course-detail.js"></script>
+</body>
+</html>
