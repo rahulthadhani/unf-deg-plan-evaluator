@@ -236,7 +236,7 @@
 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const COL = 126, ROW = 150, NW = 115, NH = 65;
 const TOP_OFFSET = 30;
-const API = 'http://localhost:8000';
+const API = 'https://unf-deg-plan-evaluator.onrender.com';
 const NO_SLOTS_MSG = 'No compatible sections available with your current blocked days/times this semester.';
 function courseHref(code){return 'courses/course-'+String(code).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'.html';}
 function tQ(t){const m=String(t||'').match(/(\d+):(\d+)\s*(AM|PM)/i);if(!m)return null;let h=+m[1],min=+m[2],p=m[3].toUpperCase();if(p==='PM'&&h!==12)h+=12;if(p==='AM'&&h===12)h=0;return(h-6)*4+Math.floor(min/15);}

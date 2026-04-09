@@ -56,7 +56,7 @@
   </div>
   <div class="site-footer">© University of North Florida &nbsp;·&nbsp; myWings Student Portal</div>
 <script>
-  const API='http://localhost:8000',CODE='COP 3503',SH=6;
+  const API='https://unf-deg-plan-evaluator.onrender.com',CODE='COP 3503',SH=6;
   const si=parseInt(localStorage.getItem('cal_semIdx')||'0');
   const S=[];for(let y=2024;y<=2030;y++){S.push({name:'Spring',year:y});S.push({name:'Summer',year:y});S.push({name:'Fall',year:y});}
   const sem=S[si]||S[0],semStr=sem.name+' '+sem.year;

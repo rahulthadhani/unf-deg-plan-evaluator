@@ -1,5 +1,5 @@
 (function () {
-  const API = "http://localhost:8000";
+  const API = "https://unf-deg-plan-evaluator.onrender.com";
   const START_HOUR = 6;
   const MAX_COURSES_PER_SEMESTER = 6;
   const codeParam = new URLSearchParams(location.search).get("code");

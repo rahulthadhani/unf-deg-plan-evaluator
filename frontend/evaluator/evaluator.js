@@ -218,7 +218,7 @@ export const TASKS = [
       localStorage.setItem("cal_semIdx", String(SPRING_2026_IDX));
       localStorage.setItem(`cal_${SUMMER_2026_IDX}_courses`, "[]");
 
-      fetch("http://localhost:8000/api/courses")
+      fetch("https://unf-deg-plan-evaluator.onrender.com/api/courses")
         .then(r => r.json())
         .then(data => {
           const meta = {};

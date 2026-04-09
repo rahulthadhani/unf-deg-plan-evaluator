@@ -1,7 +1,7 @@
 // api.ts — typed API client for the Degree Planner backend
 // All pages import from this file; change API_BASE here to point to your server.
 
-export const API_BASE = "http://localhost:8000";
+export const API_BASE = "https://unf-deg-plan-evaluator.onrender.com";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
